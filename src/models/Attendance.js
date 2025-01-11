@@ -9,7 +9,12 @@ const attendanceSchema = new mongoose.Schema({
   status: {
     type: Boolean,
     required: true, // Ensures that status field (Present or Absent) is required
-  }
+  },
+  Student: {
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Subject model
+    ref: 'Student',
+    required: true, // Ensures that subject field is required
+  },
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt fields
 });
