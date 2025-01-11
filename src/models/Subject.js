@@ -6,19 +6,46 @@ const subjectSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  school_id :{
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
+    ref: 'School',
+  },
+  teacher_id:{
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
+    ref: 'User',
+  },
   name: {
     type: String,
-    required: true, // Ensures that the name field is required
+    required: true, 
   },
-  teacher: [
-    {
-      type: mongoose.Schema.Types.ObjectId, // Reference to the Teacher model
-      ref: 'Teacher',
+  description: {
+    type: String,
+    required: true, 
+  },
+  coefficient: {
+    type: Number,
+    required: true, 
+  },
+  department: {
+    type: String,
+    required: false, 
+  },
+  schedule: [{
+    day_of_week: { // Day of the week (e.g., "Monday", "Tuesday", etc.)
+      type: String,
       required: true,
-    }
-  ]
+    },
+    start_time: { // Start time for the class
+      type: String,  // Example: "09:00 AM"
+      required: true,
+    },
+    end_time: { // End time for the class
+      type: String,  // Example: "10:00 AM"
+      required: true,
+    },
+  }],
 }, {
-  timestamps: true // Automatically adds createdAt and updatedAt fields
+  timestamps: true 
 });
 
 // Use the model if it's already defined, or create a new one

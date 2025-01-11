@@ -6,11 +6,15 @@ const resourceSchema = new mongoose.Schema({
     type: String,
     required: true, // Ensures that the resource_id field is required
   },
-  title: {
+  school_id:{
+      type: mongoose.Schema.Types.ObjectId, // Reference to the Attendance model
+      ref: 'School',
+  },
+  name: {
     type: String,
     required: true, // Ensures that title field is required
   },
-  type: {
+  resource_type: {
     type: String,
     required: true, // Ensures that type field is required
   },

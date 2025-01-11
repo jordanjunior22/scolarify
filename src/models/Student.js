@@ -6,30 +6,49 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true, // Ensures that the student_id field is required
   },
+  guardian_id: [
+      {
+        type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
+        ref: 'User',
+      }
+    ],
+  school_id:{
+      type: mongoose.Schema.Types.ObjectId, // Reference to the Attendance model
+      ref: 'School',
+  },
   name: {
     type: String,
     required: true, // Ensures that name field is required
   },
-  class: {
+  date_of_birth: {
     type: String,
-    required: true, // Ensures that class field is required
+    required: false, // Ensures that name field is required
   },
   fees: {
     type: Number,
     required: true,
   },
-  attendance: [
-    {
-      type: mongoose.Schema.Types.ObjectId, // Reference to the Attendance model
-      ref: 'Attendance',
-    }
-  ],
-  grades: [
-    {
-      type: mongoose.Schema.Types.ObjectId, // Reference to the Grade model
-      ref: 'Grade',
-    }
-  ],
+  class_id:{
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Attendance model
+    ref: 'Class',
+  },
+  age: {
+    type: Number,
+    required: true,
+  },
+  gender: {
+    type: String,
+    required: false,
+  },
+  enrollement_date: {
+    type: Date,
+    required: false,
+  },
+  status: {
+    type: String,
+    required: false,  // Ensures that the role field is required
+    enum: ['enrolled', 'graduated', 'dropped','not enrolled'],  // Example roles. You can change this as per your application
+  },
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt fields
 });

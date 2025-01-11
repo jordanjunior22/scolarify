@@ -20,6 +20,18 @@ const gradeSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  term:{
+    type: String,
+    required: true,  // Ensures that the role field is required
+    enum: ['First Term', 'Second Term', 'Third Term'],  // Example roles. You can change this as per your application
+  },
+  academic_year:{
+    type:Date,
+    required:true,
+  },
+  grade:{
+    type:String
+  },
   score: {
     type: Number, // Using Number type for scores (can handle decimals)
     required: true, // Ensures that score field is required

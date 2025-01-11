@@ -6,29 +6,14 @@ const classSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  school: {
-    type: mongoose.Schema.Types.ObjectId, // Reference to the Subject model
-    ref: 'School',
-    required: true, // Ensures that subject field is required
-  },
-  name: {
+  class_level: {
     type: String,
     required: true, // Ensures that the name field is required
   },
-  students: [
-    {
-      type: mongoose.Schema.Types.ObjectId, // Reference to the Student model
-      ref: 'Student',
-      required: true,
-    }
-  ],
-  subjects: [
-    {
-      type: mongoose.Schema.Types.ObjectId, // Reference to the Subject model
-      ref: 'Subject',
-      required: true,
-    }
-  ]
+  subject:[{
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Discipline model
+    ref: 'Subject',
+    }]
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt fields
 });

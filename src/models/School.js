@@ -12,14 +12,22 @@ const schoolSchema = new mongoose.Schema({
   },
   address: {
     type: String,
-    required: true,
+    required: false,
   },
-  classes: [
-    {
-      type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
-      ref: 'Class',
-    }
-  ]
+  website: {
+    type: String,
+    required: false,
+  },
+  phone_number: {
+    type: String,
+    required: false,
+  },
+  established_year:{
+    type: Date,
+  },
+  principal_name:{
+    type: String,
+  }
 }, {
   timestamps: true  // Automatically adds createdAt and updatedAt fields
 });

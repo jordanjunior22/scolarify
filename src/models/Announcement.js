@@ -6,11 +6,15 @@ const announcementSchema = new mongoose.Schema({
     type: String,
     required: true, // Ensures that the announcement_id field is required
   },
+  school_id:{
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Attendance model
+    ref: 'School',
+  },
   announcement: {
     type: String,
   },
 }, {
-  timestamps: true // Automatically adds createdAt and updatedAt fields
+  timestamps: true 
 });
 
 // Use the model if it's already defined, or create a new one
