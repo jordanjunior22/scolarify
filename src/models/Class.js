@@ -6,6 +6,11 @@ const classSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  school: {
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Subject model
+    ref: 'School',
+    required: true, // Ensures that subject field is required
+  },
   name: {
     type: String,
     required: true, // Ensures that the name field is required
