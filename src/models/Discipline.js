@@ -9,7 +9,7 @@ const resourceSchema = new mongoose.Schema({
   comments: {
     type: String,
   },
-  studnet: [ // Updated to include discipline
+  student: [ // Updated to include discipline
     {
       type: mongoose.Schema.Types.ObjectId, // Reference to the Discipline model
       ref: 'Student',
