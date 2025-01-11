@@ -11,6 +11,11 @@ const gradeSchema = new mongoose.Schema({
     ref: 'Subject',
     required: true, // Ensures that subject field is required
   },
+  student: {
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Subject model
+    ref: 'Student',
+    required: true, // Ensures that subject field is required
+  },
   exam_type: {
     type: String,
     required: true,
