@@ -6,18 +6,9 @@ const attendanceSchema = new mongoose.Schema({
     type: String,
     required: true, // Ensures that the attendance_id field is required
   },
-  date: {
-    type: Date,
-    required: true, // Ensures that the date field is required
-  },
   status: {
     type: Boolean,
     required: true, // Ensures that status field (Present or Absent) is required
-  },
-  student: {
-    type: mongoose.Schema.Types.ObjectId, // Reference to the Student model
-    ref: 'Student',
-    required: true, // Ensures that student field is required
   }
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt fields
