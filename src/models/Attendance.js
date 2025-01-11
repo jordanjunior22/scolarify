@@ -6,10 +6,6 @@ const attendanceSchema = new mongoose.Schema({
     type: String,
     required: true, // Ensures that the attendance_id field is required
   },
-  date: {
-    type: Date,
-    required: true, // Ensures that the date field is required
-  },
   status: {
     type: Boolean,
     required: true, // Ensures that status field (Present or Absent) is required
