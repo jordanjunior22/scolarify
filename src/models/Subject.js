@@ -14,6 +14,10 @@ const subjectSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
     ref: 'User',
   },
+  class_id:{
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
+    ref: 'Class',
+  },
   name: {
     type: String,
     required: true, 

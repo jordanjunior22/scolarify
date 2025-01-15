@@ -22,4 +22,4 @@ router.use('/resources', resourcesRoutes);
 router.use('/discipline', disciplineRoutes); // Add discipline route
 router.use('/announcement', announcementRoutes); // Add announcement route
 
-module.exports = router;
+module.exports = router; 
