@@ -7,8 +7,8 @@ const attendanceRoutes = require('./attendanceRoutes');
 const gradeRoutes = require('./gradeRoutes');
 const studentRoutes = require('./studentRoutes');
 const resourcesRoutes = require('./resourcesRoutes');
-const disciplineRoutes = require('./disciplineRoutes'); // Add discipline routes
-const announcementRoutes = require('./announcementRoutes'); // Add announcement routes
+const disciplineRoutes = require('./disciplineRoutes');
+const announcementRoutes = require('./announcementRoutes');
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -19,7 +19,7 @@ router.use('/attendance', attendanceRoutes);
 router.use('/grade', gradeRoutes);
 router.use('/student', studentRoutes);
 router.use('/resources', resourcesRoutes);
-router.use('/discipline', disciplineRoutes); // Add discipline route
-router.use('/announcement', announcementRoutes); // Add announcement route
+router.use('/discipline', disciplineRoutes);
+router.use('/announcement', announcementRoutes);
 
 module.exports = router;
