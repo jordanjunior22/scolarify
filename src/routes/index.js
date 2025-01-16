@@ -22,4 +22,4 @@ router.use('/resources', resourcesRoutes);
 router.use('/discipline', disciplineRoutes);
 router.use('/announcement', announcementRoutes);
 
-module.exports = router;
+module.exports = router; 
