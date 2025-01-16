@@ -7,70 +7,70 @@ const testSchoolResponse = (req, res) => {
 };
 
 // // Get all schools
-// const getAllSchools = async (req, res) => {
-//   try {
-//     const schools = await School.find();
-//     res.json(schools);
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
+const getAllSchools = async (req, res) => {
+  try {
+    const schools = await School.find();
+    res.json(schools);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-// // Create a new school
-// const createSchool = async (req, res) => {
-//   try {
-//     const newSchool = new School(req.body);
-//     await newSchool.save();
-//     res.status(201).json(newSchool);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// };
+// Create a new school
+const createSchool = async (req, res) => {
+  try {
+    const newSchool = new School(req.body);
+    await newSchool.save();
+    res.status(201).json(newSchool);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
 
 // // Get a school by ID
-// const getSchoolById = async (req, res) => {
-//   try {
-//     const school = await School.findById(req.params.id);
-//     if (!school) {
-//       return res.status(404).json({ message: 'School not found' });
-//     }
-//     res.json(school);
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
+const getSchoolById = async (req, res) => {
+  try {
+    const school = await School.findOne({school_id:req.params.id});
+    if (!school) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+    res.json(school);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 // // Update school by ID
-// const updateSchoolById = async (req, res) => {
-//   try {
-//     const updatedSchool = await School.findByIdAndUpdate(req.params.id, req.body, { new: true });
-//     if (!updatedSchool) {
-//       return res.status(404).json({ message: 'School not found' });
-//     }
-//     res.json(updatedSchool);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// };
+const updateSchoolById = async (req, res) => {
+  try {
+    const updatedSchool = await School.findByIdAndUpdate({school_id:req.params.id}, req.body, { new: true });
+    if (!updatedSchool) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+    res.json(updatedSchool);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
 
 // // Delete school by ID
-// const deleteSchoolById = async (req, res) => {
-//   try {
-//     const deletedSchool = await School.findByIdAndDelete(req.params.id);
-//     if (!deletedSchool) {
-//       return res.status(404).json({ message: 'School not found' });
-//     }
-//     res.json({ message: 'School deleted successfully' });
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
+const deleteSchoolById = async (req, res) => {
+  try {
+  const deletedSchool = await School.findByIdAndDelete({school_id:req.params.id});
+    if (!deletedSchool) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+    res.json({ message: 'School deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 module.exports = {
   testSchoolResponse,
-//   getAllSchools,
-//   createSchool,
-//   getSchoolById,
-//   updateSchoolById,
-//   deleteSchoolById,
+  getAllSchools,
+  createSchool,
+  getSchoolById,
+  updateSchoolById,
+  deleteSchoolById,
 };

@@ -5,15 +5,18 @@ const router = express.Router();
 router.get('/test', announcementController.testAnnouncementResponse); // Updated route to match announcement
 
 // GET /announcements to fetch all announcement records
-// router.get('/', announcementController.getAllAnnouncements);
+router.get('/get-announcements', announcementController.getAllAnnouncements);
+
+// GET /announcement by id
+router.get('/get-announcement/:id', announcementController.getAnnouncementById);
 
 // POST /announcements to create a new announcement record
-// router.post('/', announcementController.createAnnouncement);
+router.post('/create-announcement', announcementController.createAnnouncement);
 
 // PUT /announcements/:id to update a specific announcement record
-// router.put('/:id', announcementController.updateAnnouncementById);
+router.put('/update-announcement/:id', announcementController.updateAnnouncementById);
 
 // DELETE /announcements/:id to delete a specific announcement record
-// router.delete('/:id', announcementController.deleteAnnouncementById);
+router.delete('/delete-announcement/:id', announcementController.deleteAnnouncementById);
 
 module.exports = router;

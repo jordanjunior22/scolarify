@@ -1,6 +1,6 @@
 // controllers/subjectController.js
 
-const Subject = require('../models/Subject'); // Assuming you have a Subject model
+const Subject = require('../models/Subject'); // Subject model
 
 const testSubjectResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is subject' });
