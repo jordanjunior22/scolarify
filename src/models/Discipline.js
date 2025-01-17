@@ -9,7 +9,7 @@ const DisciplineSchema = new mongoose.Schema({
   comments: {
     type: String,
   },
-  student:{
+  student_id:{
       type: mongoose.Schema.Types.ObjectId, // Reference to the Discipline model
       ref: 'Student',
       required: true,
@@ -19,6 +19,6 @@ const DisciplineSchema = new mongoose.Schema({
 });
 
 // Use the model if it's already defined, or create a new one
-const Discipline = mongoose.models.Resource || mongoose.model('Discipline', DisciplineSchema);
+const Discipline = mongoose.models.Discipline || mongoose.model('Discipline', DisciplineSchema);
 
 module.exports = Discipline;

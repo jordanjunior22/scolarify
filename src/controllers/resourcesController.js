@@ -41,7 +41,7 @@ const getResourceById = async (req, res) => {
 // // Update resource record by ID
 const updateResourceById = async (req, res) => {
   try {
-    const updatedResource = await Resource.findByIdAndUpdate({resource_id:req.params.id}, req.body, { new: true });
+    const updatedResource = await Resource.findOneAndUpdate({resource_id:req.params.id}, req.body, { new: true });
     if (!updatedResource) {
       return res.status(404).json({ message: 'Resource not found' });
     }
@@ -54,7 +54,7 @@ const updateResourceById = async (req, res) => {
 // // Delete resource record by ID
 const deleteResourceById = async (req, res) => {
   try {
-    const deletedResource = await Resource.findByIdAndDelete({resource_id:req.params.id});
+    const deletedResource = await Resource.findOneAndDelete({resource_id:req.params.id});
     if (!deletedResource) {
       return res.status(404).json({ message: 'Resource not found' });
     }

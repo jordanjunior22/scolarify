@@ -41,7 +41,7 @@ const getStudentById = async (req, res) => {
 // // Update student record by ID
 const updateStudentById = async (req, res) => {
   try {
-    const updatedStudent = await Student.findByIdAndUpdate({student_id:req.params.id}, req.body, { new: true });
+    const updatedStudent = await Student.findOneAndUpdate({student_id:req.params.id}, req.body, { new: true });
     if (!updatedStudent) {
       return res.status(404).json({ message: 'Student not found' });
     }
@@ -54,7 +54,7 @@ const updateStudentById = async (req, res) => {
 // // Delete student record by ID
 const deleteStudentById = async (req, res) => {
   try {
-    const deletedStudent = await Student.findByIdAndDelete({student_id:req.params.id});
+    const deletedStudent = await Student.findOneAndDelete({student_id:req.params.id});
     if (!deletedStudent) {
       return res.status(404).json({ message: 'Student not found' });
     }
