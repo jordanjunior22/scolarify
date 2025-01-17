@@ -41,7 +41,7 @@ const getGradeById = async (req, res) => {
 // // Update grade record by ID
 const updateGradeById = async (req, res) => {
   try {
-    const updatedGrade = await Grade.findByIdAndUpdate({grade_id:req.params.id}, req.body, { new: true });
+    const updatedGrade = await Grade.findOneAndUpdate({grade_id:req.params.id}, req.body, { new: true });
     if (!updatedGrade) {
       return res.status(404).json({ message: 'Grade record not found' });
     }
@@ -54,7 +54,7 @@ const updateGradeById = async (req, res) => {
 // // Delete grade record by ID
 const deleteGradeById = async (req, res) => {
   try {
-    const deletedGrade = await Grade.findByIdAndDelete({grade_id:req.params.id});
+    const deletedGrade = await Grade.findOneAndDelete({grade_id:req.params.id});
     if (!deletedGrade) {
       return res.status(404).json({ message: 'Grade record not found' });
     }

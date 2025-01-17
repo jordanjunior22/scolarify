@@ -43,7 +43,7 @@ const getSchoolById = async (req, res) => {
 // // Update school by ID
 const updateSchoolById = async (req, res) => {
   try {
-    const updatedSchool = await School.findByIdAndUpdate({school_id:req.params.id}, req.body, { new: true });
+    const updatedSchool = await School.findOneAndUpdate({school_id:req.params.id}, req.body, { new: true });
     if (!updatedSchool) {
       return res.status(404).json({ message: 'School not found' });
     }
@@ -56,7 +56,7 @@ const updateSchoolById = async (req, res) => {
 // // Delete school by ID
 const deleteSchoolById = async (req, res) => {
   try {
-  const deletedSchool = await School.findByIdAndDelete({school_id:req.params.id});
+  const deletedSchool = await School.findOneAndDelete({school_id:req.params.id});
     if (!deletedSchool) {
       return res.status(404).json({ message: 'School not found' });
     }

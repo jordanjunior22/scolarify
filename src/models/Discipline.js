@@ -9,7 +9,7 @@ const DisciplineSchema = new mongoose.Schema({
   comments: {
     type: String,
   },
-  student:{
+  student_id:{
       type: mongoose.Schema.Types.ObjectId, // Reference to the Discipline model
       ref: 'Student',
       required: true,
