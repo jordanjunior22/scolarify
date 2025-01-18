@@ -43,7 +43,7 @@ const getDisciplineById = async (req, res) => {
 // // Update discipline by ID
 const updateDisciplineById = async (req, res) => {
   try {
-    const updatedDiscipline = await Discipline.findByIdAndUpdate({discipline_id:req.params.id}, req.body, { new: true });
+    const updatedDiscipline = await Discipline.findOneAndUpdate({discipline_id:req.params.id}, req.body, { new: true });
     if (!updatedDiscipline) {
       return res.status(404).json({ message: 'Discipline not found' });
     }
@@ -56,7 +56,7 @@ const updateDisciplineById = async (req, res) => {
 // // Delete discipline by ID
 const deleteDisciplineById = async (req, res) => {
   try {
-    const deletedDiscipline = await Discipline.findByIdAndDelete({discipline_id:req.params.id});
+    const deletedDiscipline = await Discipline.findOneAndDelete({discipline_id:req.params.id});
     if (!deletedDiscipline) {
       return res.status(404).json({ message: 'Discipline not found' });
     }

@@ -43,7 +43,7 @@ const getAnnouncementById = async (req, res) => {
 // // Update announcement by ID
 const updateAnnouncementById = async (req, res) => {
   try {
-    const updatedAnnouncement = await Announcement.findByIdAndUpdate({announcement_id:req.params.id}, req.body, { new: true });
+    const updatedAnnouncement = await Announcement.findOneAndUpdate({announcement_id:req.params.id}, req.body, { new: true });
     if (!updatedAnnouncement) {
       return res.status(404).json({ message: 'Announcement not found' });
     }
@@ -56,7 +56,7 @@ const updateAnnouncementById = async (req, res) => {
 // // Delete announcement by ID
 const deleteAnnouncementById = async (req, res) => {
   try {
-    const deletedAnnouncement = await Announcement.findByIdAndDelete({announcement_id:req.params.id});
+    const deletedAnnouncement = await Announcement.findOneAndDelete({announcement_id:req.params.id});
     if (!deletedAnnouncement) {
       return res.status(404).json({ message: 'Announcement not found' });
     }

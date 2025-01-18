@@ -43,7 +43,7 @@ const getAttendanceById = async (req, res) => {
 // // Update attendance record by ID
 const updateAttendanceById = async (req, res) => {
   try {
-    const updatedAttendance = await Attendance.findByIdAndUpdate({attendance_id:req.params.id}, req.body, { new: true });
+    const updatedAttendance = await Attendance.findOneAndUpdate({attendance_id:req.params.id}, req.body, { new: true });
     if (!updatedAttendance) {
       return res.status(404).json({ message: 'Attendance record not found' });
     }
@@ -56,7 +56,7 @@ const updateAttendanceById = async (req, res) => {
 // // Delete attendance record by ID
 const deleteAttendanceById = async (req, res) => {
   try {
-    const deletedAttendance = await Attendance.findByIdAndDelete({attendance_id:req.params.id});
+    const deletedAttendance = await Attendance.findOneAndDelete({attendance_id:req.params.id});
     if (!deletedAttendance) {
       return res.status(404).json({ message: 'Attendance record not found' });
     }

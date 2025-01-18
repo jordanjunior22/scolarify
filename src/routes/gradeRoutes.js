@@ -17,6 +17,6 @@ router.post('/create-grade', gradeController.createGrade);
 router.put('/update-grade/:id', gradeController.updateGradeById);
 
 // DELETE /grades/:id to delete a specific grade record
-router.delete('delete-grade/:id', gradeController.deleteGradeById);
+router.delete('/delete-grade/:id', gradeController.deleteGradeById);
 
 module.exports = router;
