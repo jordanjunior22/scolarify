@@ -1,6 +1,7 @@
 // controllers/attendanceController.js
 
 const Attendance = require('../models/Attendance'); // Assuming you have an Attendance model
+const { ensureUniqueId } = require('../utils/generateId'); 
 
 const testAttendanceResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is attendance' });
@@ -19,7 +20,12 @@ const getAllAttendance = async (req, res) => {
 // // Create a new attendance record
 const createAttendance = async (req, res) => {
   try {
-    const newAttendance = new Attendance(req.body);
+    const attendanceId = await ensureUniqueId(Attendance, 'attendance_id', 'ATD');
+
+    const newAttendance = new Attendance({
+      attendance_id:attendanceId,
+      ...req.body});
+
     await newAttendance.save();
     res.status(201).json(newAttendance);
   } catch (err) {

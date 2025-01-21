@@ -1,6 +1,7 @@
 // controllers/announcementController.js
 
 const Announcement = require('../models/Announcement'); // Assuming you have an Announcement model
+const { ensureUniqueId } = require('../utils/generateId'); 
 
 const testAnnouncementResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is announcement' });
@@ -19,7 +20,13 @@ const getAllAnnouncements = async (req, res) => {
 // // Create a new announcement
 const createAnnouncement = async (req, res) => {
   try {
-    const newAnnouncement = new Announcement(req.body);
+    const announcementId = await ensureUniqueId(Announcement, 'announcement_id', 'AN');
+
+    // Create the new announcement object, including the generated ID
+    const newAnnouncement = new Announcement({
+      announcement_id: announcementId,
+      ...req.body,
+    });
     await newAnnouncement.save();
     res.status(201).json(newAnnouncement);
   } catch (err) {

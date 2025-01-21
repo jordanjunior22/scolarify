@@ -1,6 +1,7 @@
 // controllers/subjectController.js
 
 const Subject = require('../models/Subject'); // Subject model
+const { ensureUniqueId } = require('../utils/generateId'); 
 
 const testSubjectResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is subject' });
@@ -19,7 +20,8 @@ const getAllSubjects = async (req, res) => {
 // // Create a new subject
 const createSubject = async (req, res) => {
   try {
-    const newSubject = new Subject(req.body);
+    const subjectId = await ensureUniqueId(Subject, 'subject_id', 'SBJ');
+    const newSubject = new Subject({subject_id:subjectId , ...req.body});
     await newSubject.save();
     res.status(201).json(newSubject);
   } catch (err) {
