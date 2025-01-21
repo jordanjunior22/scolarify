@@ -3,10 +3,10 @@ const express = require('express');
 const userController = require('../controllers/userController');
 
 const router = express.Router();
-router.get('/test', userController.testUserResponse);
+router.post('/register-user', userController.registerUser);
 
 // GET /users to fetch all users
-router.get('/get-users', userController.getAllUsers); 
+router.get('/get-users', userController.getAllUsers);
 
 // Route to get user by user_id
 router.get('/get-user/:id', userController.getUserById);
