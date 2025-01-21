@@ -11,11 +11,10 @@ const disciplineRoutes = require('./disciplineRoutes');
 const announcementRoutes = require('./announcementRoutes');
 const subscriptionRoutes = require('./subscriptionRoutes')
 const authRoutes = require('./authRoutes')
-const { authenticate, authorize } = require('../middleware/middleware');
 
 const router = express.Router();
 router.use('/user', userRoutes);
-router.use('/school',authenticate, schoolRoutes);
+router.use('/school', schoolRoutes);
 router.use('/class', classRoutes);
 router.use('/subject', subjectRoutes);
 router.use('/attendance', attendanceRoutes);
