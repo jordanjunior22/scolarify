@@ -5,7 +5,9 @@ const userSchema = new mongoose.Schema({
   user_id: {
     type: String,
     required: true,
+    unique: true,
   },
+  firebaseUid: { type: String, required: true, unique: true },
   name: {
     type: String,
     required: true,  // Ensures that the name field is required
@@ -19,6 +21,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,  // Ensures that the email field is required
     unique: true,  // Ensures that email addresses are unique across users
+  },
+  password: {
+    type: String,
+    required: true,  // Ensures that the password field is required
+  },
+  phone: {
+    type: String,
+    required: false,  // Ensures that the password field is required
   },
   address: {
     type: String,

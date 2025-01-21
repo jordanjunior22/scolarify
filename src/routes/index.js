@@ -9,10 +9,13 @@ const studentRoutes = require('./studentRoutes');
 const resourcesRoutes = require('./resourcesRoutes');
 const disciplineRoutes = require('./disciplineRoutes');
 const announcementRoutes = require('./announcementRoutes');
+const subscriptionRoutes = require('./subscriptionRoutes')
+const authRoutes = require('./authRoutes')
+const { authenticate, authorize } = require('../middleware/middleware');
 
 const router = express.Router();
 router.use('/user', userRoutes);
-router.use('/school', schoolRoutes);
+router.use('/school',authenticate, schoolRoutes);
 router.use('/class', classRoutes);
 router.use('/subject', subjectRoutes);
 router.use('/attendance', attendanceRoutes);
@@ -21,5 +24,7 @@ router.use('/student', studentRoutes);
 router.use('/resources', resourcesRoutes);
 router.use('/discipline', disciplineRoutes);
 router.use('/announcement', announcementRoutes);
+router.use('/subscription',subscriptionRoutes);
+router.use('/auth',authRoutes);
 
 module.exports = router; 

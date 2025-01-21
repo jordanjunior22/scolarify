@@ -1,5 +1,6 @@
 // // controllers/userController.js
-
+const firebase = require('../utils/firebase')
+const bcrypt = require('bcryptjs'); 
 const User = require('../models/User');  // Assuming you have a User model
 
 const testUserResponse = (req, res) => {
@@ -15,7 +16,73 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// // Create a new user
+const registerUser = async (req, res) => {
+  const { email, password, role, name, address, school_ids, phone } = req.body;
+  
+  try {
+    // Validate that the required fields are provided
+    if (!email || !password || !name || !role) {
+      return res.status(400).json({ message: 'Email, password, name and role are required' });
+    }
+
+    // Check if a user with the same email or firebaseUid already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: 'User with this email already exists' });
+    }
+
+    // Register user with Firebase
+    const userRecord = await firebase.auth().createUser({
+      email,
+      password,
+    });
+
+    // Hash password before saving to DB
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generate user_id based on role
+    let userIdPrefix = '';
+    switch (role) {
+      case 'teacher':
+        userIdPrefix = 'TR'; // For teacher, user ID starts with 'TR'
+        break;
+      case 'admin':
+        userIdPrefix = 'AD'; // For admin, user ID starts with 'AD'
+        break;
+      case 'super':
+        userIdPrefix = 'SP'; // For super, user ID starts with 'SP'
+        break;
+      default:
+        userIdPrefix = 'PR'; // For parent, user ID starts with 'PR'
+        break;
+    }
+
+    const randomNumber = Math.floor(Math.random() * 25000000);  // Random number between 0 and 24,999,999
+    const userId = `${userIdPrefix}-${randomNumber.toString().padStart(7, '0')}`;  // Format to always have 7 digits
+
+    // Create user in MongoDB
+    const user = new User({
+      user_id: userId, // The user_id is now generated based on the role
+      firebaseUid: userRecord.uid,
+      name,
+      role,
+      phone,
+      email,
+      password: hashedPassword,
+      address,
+      school_ids: school_ids || [], // Default to an empty array if no school_ids are provided
+    });
+
+    await user.save();
+    return res.status(201).json({ message: 'User registered successfully', user });
+  } catch (error) {
+    console.error('Error during registration:', error);
+    return res.status(500).json({ message: 'Registration failed', error: error.message });
+  }
+}
+
+
+//
 const createUser = async (req, res) => {
   try {
     const newUser = new User(req.body);
@@ -93,5 +160,6 @@ module.exports = {
     getUserById,
     updateUserById,
     deleteUserById,
-    testUserResponse
+    testUserResponse,
+    registerUser
  };
