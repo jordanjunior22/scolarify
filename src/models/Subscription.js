@@ -5,13 +5,29 @@ const subscriptionSchema = new mongoose.Schema({
     type: String,
     required: true, // Ensures that the announcement_id field is required
   },
-  user_id:{
+  transaction_id: {
+    type: String,
+    required: true, // Ensures that the announcement_id field is required
+  },
+  guardian_id:{
     type: mongoose.Schema.Types.ObjectId, // Reference to the Attendance model
     ref: 'User',
+  },
+  amount:{
+    type:Number,
+    required:true
+  },
+  email:{
+    type:String,
+    required:true
   },
   status:{
     type:Boolean,
     required: true, // Ensures that status field (Present or Absent) is required
+  },
+  expiryDate: { // New field to track the subscription expiry date
+    type: Date,
+    required: false, // Only required if the subscription is active
   }
 }, {
   timestamps: true 
