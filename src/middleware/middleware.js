@@ -51,9 +51,13 @@ const authorize = (roles = []) => {
 };
 
 const checkSubscription = async (req, res, next) => {
+  
   try {
     const userId = req.user._id; // Assuming the user is attached to the request after authentication
 
+    if (req.user.role !== 'parent') {
+      return next(); // If not a parent, allow the request to continue
+    }
     // Find the user's subscription by guardian_id (userId)
     const subscription = await Subscription.findOne({ guardian_id: userId});
 
