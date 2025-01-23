@@ -1,6 +1,7 @@
 // controllers/classController.js
 
 const Class = require('../models/Class'); // Assuming you have a Class model
+const { ensureUniqueId } = require('../utils/generateId'); 
 
 const testClassResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is class' });
@@ -19,7 +20,8 @@ const getAllClasses = async (req, res) => {
 // // Create a new class
 const createClass = async (req, res) => {
   try {
-    const newClass = new Class(req.body);
+    const classId = await ensureUniqueId(Class, 'class_id', 'CLS');
+    const newClass = new Class({class_id:classId, ...req.body});
     await newClass.save();
     res.status(201).json(newClass);
   } catch (err) {

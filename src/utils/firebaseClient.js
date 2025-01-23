@@ -1,7 +1,7 @@
 // frontend/firebaseClient.js
 // Import required modules from the Firebase SDK
 const { initializeApp } = require('firebase/app');
-const { getAuth, signInWithEmailAndPassword } = require('firebase/auth');
+const { getAuth, signInWithEmailAndPassword,sendPasswordResetEmail } = require('firebase/auth');
 
 // Firebase configuration object (replace these values with your own)
 const firebaseConfig = {
@@ -20,4 +20,4 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 // Export Firebase authentication module
-module.exports = { auth, signInWithEmailAndPassword };
+module.exports = { auth, signInWithEmailAndPassword,sendPasswordResetEmail};

@@ -11,6 +11,7 @@ const disciplineRoutes = require('./disciplineRoutes');
 const announcementRoutes = require('./announcementRoutes');
 const subscriptionRoutes = require('./subscriptionRoutes')
 const authRoutes = require('./authRoutes')
+const webhookRoutes = require('./paymentRoute')
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -25,5 +26,6 @@ router.use('/discipline', disciplineRoutes);
 router.use('/announcement', announcementRoutes);
 router.use('/subscription',subscriptionRoutes);
 router.use('/auth',authRoutes);
+router.use('/payment',webhookRoutes);
 
 module.exports = router; 

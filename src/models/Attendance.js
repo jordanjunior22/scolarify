@@ -10,6 +10,10 @@ const attendanceSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
     ref: 'School',
   },
+  subject:{
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
+    ref: 'Subject',
+  },
   status: {
     type: Boolean,
     required: true, // Ensures that status field (Present or Absent) is required

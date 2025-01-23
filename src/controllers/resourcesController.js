@@ -1,4 +1,5 @@
 const Resource = require('../models/Resources'); // Assuming you have a Resource model
+const { ensureUniqueId } = require('../utils/generateId'); 
 
 const testResourcesResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is resource' });
@@ -17,7 +18,8 @@ const getAllResources = async (req, res) => {
 // // Create a new resource record
 const createResource = async (req, res) => {
   try {
-    const newResource = new Resource(req.body);
+    const resourceId = await ensureUniqueId(Resource, 'resource_id', 'RSC');
+    const newResource = new Resource({resource_id:resourceId, ...req.body});
     await newResource.save();
     res.status(201).json(newResource);
   } catch (err) {

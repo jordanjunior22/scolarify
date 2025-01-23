@@ -1,6 +1,7 @@
 // controllers/disciplineController.js
 
 const Discipline = require('../models/Discipline'); // Assuming you have a Discipline model
+const { ensureUniqueId } = require('../utils/generateId'); 
 
 const testDisciplineResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is discipline' });
@@ -19,7 +20,8 @@ const getAllDisciplines = async (req, res) => {
 // // Create a new discipline
 const createDiscipline = async (req, res) => {
   try {
-    const newDiscipline = new Discipline(req.body);
+    const disciplineId = await ensureUniqueId(Discipline, 'discipline_id', 'DSP');
+    const newDiscipline = new Discipline({discipline_id:disciplineId, ...req.body});
     await newDiscipline.save();
     res.status(201).json(newDiscipline);
   } catch (err) {

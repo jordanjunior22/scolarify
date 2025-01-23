@@ -1,4 +1,5 @@
 const Grade = require('../models/Grade'); // Assuming you have a Grade model
+const { ensureUniqueId } = require('../utils/generateId'); 
 
 const testGradeResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is grade' });
@@ -17,7 +18,8 @@ const getAllGrades = async (req, res) => {
 // // Create a new grade record
 const createGrade = async (req, res) => {
   try {
-    const newGrade = new Grade(req.body);
+    const gradeId = await ensureUniqueId(Grade, 'grade_id', 'GRD');
+    const newGrade = new Grade({ grade_id:gradeId , ...req.body});
     await newGrade.save();
     res.status(201).json(newGrade);
   } catch (err) {

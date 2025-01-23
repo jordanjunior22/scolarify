@@ -1,6 +1,7 @@
 // controllers/schoolController.js
 
 const School = require('../models/School'); // Assuming you have a School model
+const { ensureUniqueId } = require('../utils/generateId'); 
 
 const testSchoolResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is school' });
@@ -19,7 +20,8 @@ const getAllSchools = async (req, res) => {
 // Create a new school
 const createSchool = async (req, res) => {
   try {
-    const newSchool = new School(req.body);
+    const schoolId = await ensureUniqueId(School, 'school_id', 'RSC');
+    const newSchool = new School({school_id:schoolId, ...req.body});
     await newSchool.save();
     res.status(201).json(newSchool);
   } catch (err) {

@@ -1,6 +1,8 @@
 // middleware/authMiddleware.js
 const admin = require('../utils/firebase'); // Import the initialized Firebase Admin instance
 const User = require('../models/User'); // Import your MongoDB user model
+const Subscription = require('../models/Subscription'); // Subscription model
+
 
 // Authentication Middleware to verify Firebase token
 const authenticate = async (req, res, next) => {
@@ -48,4 +50,31 @@ const authorize = (roles = []) => {
   };
 };
 
-module.exports = { authenticate, authorize };
+const checkSubscription = async (req, res, next) => {
+  try {
+    const userId = req.user._id; // Assuming the user is attached to the request after authentication
+
+    // Find the user's subscription by guardian_id (userId)
+    const subscription = await Subscription.findOne({ guardian_id: userId});
+
+    // Check if subscription exists and is still active (not expired)
+    if (!subscription) {
+      return res.status(403).send({ message: 'You must have an active subscription to access this resource.' });
+    }
+
+    // Check if the subscription is expired
+    const currentDate = new Date();
+    if (new Date(subscription.expiryDate) < currentDate) {
+      subscription.status = false;
+      await subscription.save();
+      return res.status(403).send({ message: 'Your subscription has expired. Please renew your subscription.' });
+    }
+
+    // If everything is fine, proceed to the next middleware or route handler
+    next();
+  } catch (error) {
+    console.error('Error checking subscription:', error);
+    res.status(500).send({ message: 'Internal Server Error' });
+  }
+}
+module.exports = { authenticate, authorize,checkSubscription };

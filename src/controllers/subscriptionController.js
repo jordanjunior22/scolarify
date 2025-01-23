@@ -1,6 +1,7 @@
 // controllers/subscriptionController.js
 
 const Subscription = require('../models/Subscription'); // Assuming you have a Subscription model
+const { ensureUniqueId } = require('../utils/generateId'); 
 
 // Test route to check if subscription controller is working
 const testSubscriptionResponse = (req, res) => {
@@ -20,7 +21,8 @@ const getAllSubscriptions = async (req, res) => {
 // Create a new subscription record
 const createSubscription = async (req, res) => {
   try {
-    const newSubscription = new Subscription(req.body);
+    const subscriptionId = await ensureUniqueId(Subscription, 'subscription_id', 'SUB');
+    const newSubscription = new Subscription({subscription_id:subscriptionId , ...req.body});
     await newSubscription.save();
     res.status(201).json(newSubscription);
   } catch (err) {

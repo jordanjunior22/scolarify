@@ -1,4 +1,5 @@
 const Student = require('../models/Student'); // Assuming you have a Student model
+const { ensureUniqueId } = require('../utils/generateId'); 
 
 const testStudentResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is student' });
@@ -17,7 +18,8 @@ const getAllStudents = async (req, res) => {
 // // Create a new student record
 const createStudent = async (req, res) => {
   try {
-    const newStudent = new Student(req.body);
+    const StudentId = await ensureUniqueId(Student, 'student_id', 'STD');
+    const newStudent = new Student({student_id:StudentId,...req.body});
     await newStudent.save();
     res.status(201).json(newStudent);
   } catch (err) {
