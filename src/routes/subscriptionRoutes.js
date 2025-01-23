@@ -1,24 +1,25 @@
 const express = require('express');
 const subscriptionController = require('../controllers/subscriptionController'); // Updated controller import
+const { authenticate, authorize, checkSubscription } = require('../middleware/middleware');
 
 const router = express.Router();
 
 // Test route for subscription controller
-router.get('/test', subscriptionController.testSubscriptionResponse);
+// router.get('/test', subscriptionController.testSubscriptionResponse);
 
 // GET /subscriptions to fetch all subscription records
-router.get('/get-subscriptions', subscriptionController.getAllSubscriptions);
+router.get('/get-subscriptions' , authenticate, authorize(['admin', 'super', 'parent', 'teacher']) , subscriptionController.getAllSubscriptions);
 
 // GET /subscription by id
-router.get('/get-subscription/:id', subscriptionController.getSubscriptionById);
+router.get('/get-subscription/:id' , authenticate, authorize(['admin', 'super', 'parent', 'teacher']) , subscriptionController.getSubscriptionById);
 
 // POST /subscriptions to create a new subscription record
-router.post('/create-subscription', subscriptionController.createSubscription);
+router.post('/create-subscription', authenticate, authorize(['admin', 'super', 'parent']) , subscriptionController.createSubscription);
 
 // PUT /subscriptions/:id to update a specific subscription record
-router.put('/update-subscription/:id', subscriptionController.updateSubscriptionById);
+router.put('/update-subscription/:id' , authenticate, authorize(['admin', 'super']) , subscriptionController.updateSubscriptionById);
 
 // DELETE /subscriptions/:id to delete a specific subscription record
-router.delete('/delete-subscription/:id', subscriptionController.deleteSubscriptionById);
+router.delete('/delete-subscription/:id', authenticate, authorize(['admin', 'super']),  subscriptionController.deleteSubscriptionById);
 
 module.exports = router;
