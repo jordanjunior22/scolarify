@@ -8,18 +8,18 @@ const router = express.Router();
 // router.get('/test', subscriptionController.testSubscriptionResponse);
 
 // GET /subscriptions to fetch all subscription records
-router.get('/get-subscriptions' , authenticate, authorize(['admin', 'super', 'parent', 'teacher']) , subscriptionController.getAllSubscriptions);
+router.get('/get-subscriptions' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent']) , subscriptionController.getAllSubscriptions);
 
 // GET /subscription by id
-router.get('/get-subscription/:id' , authenticate, authorize(['admin', 'super', 'parent', 'teacher']) , subscriptionController.getSubscriptionById);
+router.get('/get-subscription/:id' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent']) , subscriptionController.getSubscriptionById);
 
 // POST /subscriptions to create a new subscription record
-router.post('/create-subscription', authenticate, authorize(['admin', 'super', 'parent']) , subscriptionController.createSubscription);
+router.post('/create-subscription', authenticate, checkSubscription, authorize(['admin', 'super', 'parent']) , subscriptionController.createSubscription);
 
 // PUT /subscriptions/:id to update a specific subscription record
 router.put('/update-subscription/:id' , authenticate, authorize(['admin', 'super']) , subscriptionController.updateSubscriptionById);
 
 // DELETE /subscriptions/:id to delete a specific subscription record
-router.delete('/delete-subscription/:id', authenticate, authorize(['admin', 'super']),  subscriptionController.deleteSubscriptionById);
+router.delete('/delete-subscription/:id', authenticate, authorize(['super']),  subscriptionController.deleteSubscriptionById);
 
 module.exports = router;

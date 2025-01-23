@@ -8,10 +8,10 @@ const router = express.Router();
 // router.get('/test', subjectController.testSubjectResponse);
 
 // GET /subjects to fetch all subjects
-router.get('/get-subjects', authenticate, authorize(['admin', 'super', 'parent', 'teacher']) , subjectController.getAllSubjects);
+router.get('/get-subjects', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , subjectController.getAllSubjects);
 
 //GET subjects by id
-router.get('/get-subject/:id', authenticate, authorize(['admin', 'super', 'parent', 'teacher']) , subjectController.getSubjectById);
+router.get('/get-subject/:id', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , subjectController.getSubjectById);
 
 // POST /subjects to create a new subject
 router.post('/create-subject' , authenticate, authorize(['admin', 'super']), subjectController.createSubject); 

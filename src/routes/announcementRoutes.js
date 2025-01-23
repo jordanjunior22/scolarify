@@ -7,18 +7,18 @@ const router = express.Router();
 router.get('/test', announcementController.testAnnouncementResponse); // Updated route to match announcement
 
 // GET /announcements to fetch all announcement records
-router.get('/get-announcements' , authenticate, authorize(['admin', 'super', 'parent', 'teacher']) ,  announcementController.getAllAnnouncements);
+router.get('/get-announcements' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) ,  announcementController.getAllAnnouncements);
 
 // GET /announcement by id
-router.get('/get-announcement/:id' , authenticate, authorize(['admin', 'super', 'parent', 'teacher']) , announcementController.getAnnouncementById);
+router.get('/get-announcement/:id' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , announcementController.getAnnouncementById);
 
 // POST /announcements to create a new announcement record
-router.post('/create-announcement' , authenticate, authorize(['admin', 'super', 'teacher']) , announcementController.createAnnouncement);
+router.post('/create-announcement' , authenticate, authorize(['admin', 'super']) , announcementController.createAnnouncement);
 
 // PUT /announcements/:id to update a specific announcement record
-router.put('/update-announcement/:id' , authenticate, authorize(['admin', 'super', 'teacher']) , announcementController.updateAnnouncementById);
+router.put('/update-announcement/:id' , authenticate, authorize(['admin', 'super']) , announcementController.updateAnnouncementById);
 
 // DELETE /announcements/:id to delete a specific announcement record
-router.delete('/delete-announcement/:id' , authenticate, authorize(['admin', 'super', 'teacher']) , announcementController.deleteAnnouncementById);
+router.delete('/delete-announcement/:id' , authenticate, authorize(['admin', 'super']) , announcementController.deleteAnnouncementById);
 
 module.exports = router;

@@ -51,15 +51,16 @@ const authorize = (roles = []) => {
 };
 
 const checkSubscription = async (req, res, next) => {
-  
-  try {
-    const userId = req.user._id; // Assuming the user is attached to the request after authentication
 
-    if (req.user.role !== 'parent') {
+  try {
+    const user = await User.findOne({ firebaseUid: req.user.uid });
+    
+    if (user.role !== 'parent') {
       return next(); // If not a parent, allow the request to continue
     }
     // Find the user's subscription by guardian_id (userId)
-    const subscription = await Subscription.findOne({ guardian_id: userId});
+    const subscription = await Subscription.findOne({ guardian_id: user._id});
+    console.log("sub data", subscription)
 
     // Check if subscription exists and is still active (not expired)
     if (!subscription) {
@@ -68,7 +69,7 @@ const checkSubscription = async (req, res, next) => {
 
     // Check if the subscription is expired
     const currentDate = new Date();
-    if (new Date(subscription.expiryDate) < currentDate) {
+    if (new Date(subscription.expiryDate) < currentDate) { 
       subscription.status = false;
       await subscription.save();
       return res.status(403).send({ message: 'Your subscription has expired. Please renew your subscription.' });
@@ -81,4 +82,4 @@ const checkSubscription = async (req, res, next) => {
     res.status(500).send({ message: 'Internal Server Error' });
   }
 }
-module.exports = { authenticate, authorize,checkSubscription };
+module.exports = { authenticate, authorize, checkSubscription }; 

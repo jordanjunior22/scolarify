@@ -8,18 +8,18 @@ const router = express.Router();
 // router.get('/test', schoolController.testSchoolResponse);
 
 // GET /schools to fetch all schools
-router.get('/get-schools' , authenticate, authorize(['admin', 'super', 'parent', 'teacher']) , schoolController.getAllSchools);
+router.get('/get-schools' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , schoolController.getAllSchools);
 
 // GET /school by id
-router.get('/get-school/:id' , authenticate, authorize(['admin', 'super', 'parent', 'teacher']) , schoolController.getSchoolById);
+router.get('/get-school/:id' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , schoolController.getSchoolById);
 
 // POST /schools to create a new school
-router.post('/create-school' , authenticate, authorize(['admin', 'super']) ,  schoolController.createSchool);
+router.post('/create-school' , authenticate, authorize(['super']) ,  schoolController.createSchool);
 
 // PUT /schools/:id to update a specific school
 router.put('/update-school/:id' , authenticate, authorize(['admin', 'super']) , schoolController.updateSchoolById);
 
 // DELETE /schools/:id to delete a specific school
-router.delete('/delete-school/:id' , authenticate, authorize(['admin', 'super']) , schoolController.deleteSchoolById);
+router.delete('/delete-school/:id' , authenticate, authorize(['super']) , schoolController.deleteSchoolById);
 
 module.exports = router;

@@ -7,16 +7,16 @@ const router = express.Router();
 router.post('/register-user', authenticate, authorize(['admin', 'super']), userController.registerUser);
 
 // GET /users to fetch all users
-router.get('/get-users', authenticate, authorize(['admin', 'super', 'parent', 'teacher']), userController.getAllUsers);
+router.get('/get-users', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']), userController.getAllUsers);
 
 // Route to get user by user_id
-router.get('/get-user/:id', authenticate, authorize(['admin', 'super', 'parent', 'teacher']), userController.getUserById);
+router.get('/get-user/:id', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']), userController.getUserById);
 
 // POST /users to create a new user
 // router.post('/create-user', userController.createUser);
 
 // PUT /users/:id to update a specific user
-router.put('/update-user/:id', authenticate, authorize(['admin', 'super', 'parent', 'teacher']), userController.updateUserById);
+router.put('/update-user/:id', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']), userController.updateUserById);
 
 // DELETE /users/:id to delete a specific user
 router.delete('/delete-user/:id', authenticate, authorize(['admin', 'super']), userController.deleteUserById);

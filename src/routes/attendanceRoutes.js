@@ -8,10 +8,10 @@ const router = express.Router();
 // router.get('/test', attendanceController.testAttendanceResponse); // Updated route to match attendance
 
 // GET /attendances to fetch all attendance records
-router.get('/get-attendances' , authenticate, authorize(['admin', 'super', 'parent', 'teacher']) , attendanceController.getAllAttendance);
+router.get('/get-attendances' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , attendanceController.getAllAttendance);
 
 // GET /attendance by id
-router.get('/get-attendance/:id' , authenticate, authorize(['admin', 'super', 'parent', 'teacher']) , attendanceController.getAttendanceById);
+router.get('/get-attendance/:id' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , attendanceController.getAttendanceById);
 
 // POST /attendances to create a new attendance record
 router.post('/create-attendance' , authenticate, authorize(['admin', 'super', 'teacher']) , attendanceController.createAttendance);
