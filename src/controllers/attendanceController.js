@@ -20,12 +20,7 @@ const getAllAttendance = async (req, res) => {
 // // Create a new attendance record
 const createAttendance = async (req, res) => {
   try {
-    const attendanceId = await ensureUniqueId(Attendance, 'attendance_id', 'ATD');
-
-    const newAttendance = new Attendance({
-      attendance_id:attendanceId,
-      ...req.body});
-
+    const newAttendance = new Attendance(req.body);
     await newAttendance.save();
     res.status(201).json(newAttendance);
   } catch (err) {
@@ -36,7 +31,7 @@ const createAttendance = async (req, res) => {
 // // Get an attendance record by ID
 const getAttendanceById = async (req, res) => {
   try {
-    const attendance = await Attendance.findOne({attendance_id:req.params.id});
+    const attendance = await Attendance.findById(req.params.id);
     if (!attendance) {
       return res.status(404).json({ message: 'Attendance record not found' });
     }
@@ -49,7 +44,7 @@ const getAttendanceById = async (req, res) => {
 // // Update attendance record by ID
 const updateAttendanceById = async (req, res) => {
   try {
-    const updatedAttendance = await Attendance.findOneAndUpdate({attendance_id:req.params.id}, req.body, { new: true });
+    const updatedAttendance = await Attendance.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!updatedAttendance) {
       return res.status(404).json({ message: 'Attendance record not found' });
     }
@@ -62,7 +57,7 @@ const updateAttendanceById = async (req, res) => {
 // // Delete attendance record by ID
 const deleteAttendanceById = async (req, res) => {
   try {
-    const deletedAttendance = await Attendance.findOneAndDelete({attendance_id:req.params.id});
+    const deletedAttendance = await Attendance.findByIdAndDelete(req.params.id);
     if (!deletedAttendance) {
       return res.status(404).json({ message: 'Attendance record not found' });
     }

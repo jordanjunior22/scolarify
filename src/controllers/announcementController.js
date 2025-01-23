@@ -20,7 +20,7 @@ const getAllAnnouncements = async (req, res) => {
 // // Create a new announcement
 const createAnnouncement = async (req, res) => {
   try {
-    const announcementId = await ensureUniqueId(Announcement, 'announcement_id', 'AN');
+    const announcementId = await ensureUniqueId(Announcement, 'announcement_id', 'ANC');
 
     // Create the new announcement object, including the generated ID
     const newAnnouncement = new Announcement({

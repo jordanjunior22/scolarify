@@ -2,10 +2,6 @@ const mongoose = require('mongoose');
 
 // Define the schema for the Grade model
 const gradeSchema = new mongoose.Schema({
-  grade_id: {
-    type: String,
-    required: true, // Ensures that the grade_id field is required
-  },
   school_id :{
       type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
       ref: 'School',

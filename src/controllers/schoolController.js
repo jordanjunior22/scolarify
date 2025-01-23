@@ -20,7 +20,7 @@ const getAllSchools = async (req, res) => {
 // Create a new school
 const createSchool = async (req, res) => {
   try {
-    const schoolId = await ensureUniqueId(School, 'school_id', 'RSC');
+    const schoolId = await ensureUniqueId(School, 'school_id', 'SCL');
     const newSchool = new School({school_id:schoolId, ...req.body});
     await newSchool.save();
     res.status(201).json(newSchool);
