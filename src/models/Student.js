@@ -44,6 +44,10 @@ const studentSchema = new mongoose.Schema({
     type: Date,
     required: false,
   },
+  non_compulsory_sbj:[{
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Subject model
+    ref: 'Subject',
+  }],
   status: {
     type: String,
     required: false,  // Ensures that the role field is required

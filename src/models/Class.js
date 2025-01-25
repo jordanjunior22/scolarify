@@ -14,10 +14,10 @@ const classSchema = new mongoose.Schema({
     type: String,
     required: true, // Ensures that the name field is required
   },
-  subject:[{
-    type: mongoose.Schema.Types.ObjectId, // Reference to the Discipline model
-    ref: 'Subject',
-    }]
+  class_code:{
+    type: String,
+    required: true,
+  }
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt fields
 });

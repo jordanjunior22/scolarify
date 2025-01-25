@@ -6,6 +6,14 @@ const subjectSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  subject_code: {
+    type:String,
+    required: true,
+  },
+  compulsory: {
+    type:Boolean,
+    required:true
+  },
   school_id :{
     type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
     ref: 'School',
@@ -14,7 +22,7 @@ const subjectSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
     ref: 'User',
   },
-  class_id:{
+  class_id :{
     type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
     ref: 'Class',
   },

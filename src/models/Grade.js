@@ -26,7 +26,7 @@ const gradeSchema = new mongoose.Schema({
     enum: ['First Term', 'Second Term', 'Third Term'],  // Example roles. You can change this as per your application
   },
   academic_year:{
-    type:Date,
+    type:String,
     required:true,
   },
   grade:{

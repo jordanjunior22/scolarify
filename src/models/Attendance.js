@@ -14,6 +14,10 @@ const attendanceSchema = new mongoose.Schema({
     type: Boolean,
     required: true, // Ensures that status field (Present or Absent) is required
   },
+  date: {
+    type:Date,
+    required:true,
+  },
   student_id: {
     type: mongoose.Schema.Types.ObjectId, // Reference to the Subject model
     ref: 'Student',

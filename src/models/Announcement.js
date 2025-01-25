@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
-
 // Define the schema for the Announcement model
 const announcementSchema = new mongoose.Schema({
   announcement_id: {
     type: String,
     required: true, // Ensures that the announcement_id field is required
   },
-  school_id:{
+  
+school_id:{
     type: mongoose.Schema.Types.ObjectId, // Reference to the Attendance model
     ref: 'School',
   },
