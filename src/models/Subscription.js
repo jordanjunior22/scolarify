@@ -13,6 +13,9 @@ const subscriptionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, // Reference to the Attendance model
     ref: 'User',
   },
+  student_id:[{
+    type: String,
+  }],
   amount:{
     type:Number,
     required:true

@@ -60,7 +60,7 @@ const checkSubscription = async (req, res, next) => {
     }
     // Find the user's subscription by guardian_id (userId)
     const subscription = await Subscription.findOne({ guardian_id: user._id});
-    console.log("sub data", subscription)
+    //console.log("sub data", subscription)
 
     // Check if subscription exists and is still active (not expired)
     if (!subscription) {

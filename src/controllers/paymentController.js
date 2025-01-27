@@ -13,9 +13,9 @@ async function handleWebhook(req, res) {
       return res.status(400).send({ message: event.message });
     }
 
-    const { transId, email, amount, dateInitiated, userId } = req.body;
+    const { transId, email, amount, dateInitiated, userId,externalId } = req.body;
     const subscriptionId = await ensureUniqueId(Subscription, 'subscription_id', 'SUB');
-
+    const student_id = externalId.split("_");
     // Handle the event based on the status
     switch (event.status) {
       case 'SUCCESSFUL':
@@ -28,6 +28,7 @@ async function handleWebhook(req, res) {
           amount: amount,
           expiryDate: expiryDate,
           status: true, // Mark as active
+          student_id:student_id,
           subscription_id: subscriptionId,
           guardian_id: userId, // Assuming userId is the guardian (optional, depending on your model)
         };
@@ -42,6 +43,7 @@ async function handleWebhook(req, res) {
           // Update the existing subscription (if necessary)
           subscription.expiryDate = expiryDate;
           subscription.transaction_id = transId,
+          subscription.student_id = student_id,
           subscription.status = true; // Ensure the subscription is active
           subscription.subscription_id = subscriptionId; // Ensure unique subscription_id is added
         }
@@ -88,4 +90,17 @@ async function handleWebhook(req, res) {
   }
 }
 
-module.exports = { handleWebhook };
+const initiatePayment = async (req, res) => {
+  try {
+    const data = req.body;
+    const response = await fapshi.initiatePay(data);
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error handling payment:', error);
+    res.status(500).send({ message: 'Internal Server Error' });
+  }
+};
+
+
+module.exports = { handleWebhook,initiatePayment };
