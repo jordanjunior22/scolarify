@@ -1,33 +1,36 @@
 const mongoose = require('mongoose');
 
-// Define the schema for the Attendance model
-const attendanceSchema = new mongoose.Schema({
-  school_id :{
-    type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
-    ref: 'School',
+const AttendanceSchema = new mongoose.Schema(
+  {
+    school_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "School",
+      required: true,
+    },
+    student_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student",
+      required: true,
+    },
+    schedule_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ClassSchedule", 
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["Present", "Absent", "Late", "Excused"],
+      required: true,
+    },
+    date: {
+      type: Date,
+      required: true,
+    },
   },
-  subject:{
-    type: mongoose.Schema.Types.ObjectId, // Reference to the Class model
-    ref: 'Subject',
-  },
-  status: {
-    type: Boolean,
-    required: true, // Ensures that status field (Present or Absent) is required
-  },
-  date: {
-    type:Date,
-    required:true,
-  },
-  student_id: {
-    type: mongoose.Schema.Types.ObjectId, // Reference to the Subject model
-    ref: 'Student',
-    required: true, // Ensures that subject field is required
-  },
-}, {
-  timestamps: true // Automatically adds createdAt and updatedAt fields
-});
-
-// Use the model if it's already defined, or create a new one
-const Attendance = mongoose.models.Attendance || mongoose.model('Attendance', attendanceSchema);
-
+  {
+    timestamps: true,
+  }
+);
+const Attendance = mongoose.models.Attendance || mongoose.model('Attendance', AttendanceSchema);
 module.exports = Attendance;
+ 
