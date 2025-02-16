@@ -3,7 +3,6 @@ const admin = require('../utils/firebase'); // Import the initialized Firebase A
 const User = require('../models/User'); // Import your MongoDB user model
 const Subscription = require('../models/Subscription'); // Subscription model
 
-
 // Authentication Middleware to verify Firebase token
 const authenticate = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1]; // Extract token from Authorization header (Bearer <token>)

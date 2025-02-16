@@ -3,8 +3,17 @@ const dotenv = require('dotenv');
 const routes = require('./routes/index'); // Import routes
 const connectDB = require('./utils/connectDB');
 
+import('./middleware/arcjetMiddleware.mjs')
+  .then((module) => {
+    // Access the default export which is the middleware function
+    const arcjetMiddleware = module.default;
 
-dotenv.config();
+    // Use the middleware in your app
+    app.use(arcjetMiddleware);
+  })
+  .catch((error) => {
+    console.error('Error loading middleware:', error);
+  });
 
 dotenv.config();
 
@@ -14,6 +23,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware to parse JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+ 
 
 // Connect to MongoDB
 connectDB();  // Call the function to connect to the database
