@@ -11,7 +11,7 @@ school_id:{
     ref: 'School',
   },
   announcement: {
-    type: String,
+    type: String, 
   },
 }, {
   timestamps: true 

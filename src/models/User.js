@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: false,  // Ensures that the password field is required
   },
+  avatar: {
+    type: String,
+    required: false,  // Ensures that the password field is required
+  },
   address: {
     type: String,
     required: false,

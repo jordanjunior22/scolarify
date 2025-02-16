@@ -11,7 +11,9 @@ const disciplineRoutes = require('./disciplineRoutes');
 const announcementRoutes = require('./announcementRoutes');
 const subscriptionRoutes = require('./subscriptionRoutes')
 const authRoutes = require('./authRoutes')
-const paymentRoute = require('./paymentRoute')
+const paymentRoutes = require('./paymentRoute')
+const periodRoutes = require('./PeriodRoutes')
+const classScheduleRoutes = require('./classScheduleRoutes')
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -26,6 +28,8 @@ router.use('/discipline', disciplineRoutes);
 router.use('/announcement', announcementRoutes);
 router.use('/subscription',subscriptionRoutes);
 router.use('/auth',authRoutes);
-router.use('/payment',paymentRoute);
+router.use('/payment',paymentRoutes);
+router.use('/periods',periodRoutes);
+router.use('/schedule',classScheduleRoutes);
 
 module.exports = router; 
