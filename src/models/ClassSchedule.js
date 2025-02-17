@@ -12,6 +12,11 @@ const ClassScheduleSchema = new mongoose.Schema(
       ref: "Subject",
       required: true,
     },
+    schedule_type:{
+      type: String,
+      required: true,  
+      enum: ['Normal', 'Exam', 'Event'],
+    },
     period_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Period",
@@ -20,7 +25,6 @@ const ClassScheduleSchema = new mongoose.Schema(
     teacher_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
     day_of_week: {
       type: String,

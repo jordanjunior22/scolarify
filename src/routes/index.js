@@ -14,6 +14,7 @@ const authRoutes = require('./authRoutes')
 const paymentRoutes = require('./paymentRoute')
 const periodRoutes = require('./PeriodRoutes')
 const classScheduleRoutes = require('./classScheduleRoutes')
+const examTypeRoutes = require('./examTypeRoutes')
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -31,5 +32,6 @@ router.use('/auth',authRoutes);
 router.use('/payment',paymentRoutes);
 router.use('/periods',periodRoutes);
 router.use('/schedule',classScheduleRoutes);
+router.use('/exam',examTypeRoutes);
 
 module.exports = router; 
