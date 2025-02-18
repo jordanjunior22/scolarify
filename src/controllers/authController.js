@@ -51,104 +51,134 @@ const sendInvitation = async (req, res) => {
   const { email, phone, role, childrenIds } = req.body;
 
   try {
+    if (!email && !phone) {
+      return res.status(400).json({ success: false, message: "Email or phone is required" });
+    }
+
     // Generate a Firebase custom token
     const customToken = await admin.auth().createCustomToken(email || phone);
 
-    // Encode children IDs as a base64 string
-    const encodedChildren = Buffer.from(JSON.stringify(childrenIds)).toString("base64");
+    // Ensure childrenIds is an array, otherwise set it as an empty array
+    const validChildrenIds = Array.isArray(childrenIds) ? childrenIds : [];
+    const encodedChildren = Buffer.from(JSON.stringify(validChildrenIds)).toString("base64");
 
-    // Construct deep link to redirect user to app
+    // Construct deep link
     const appLink = `myapp://signup?token=${customToken}&children=${encodedChildren}`;
-    const fallbackUrl = `http://localhost/3000/api/auth/redirect?token=${customToken}&children=${encodedChildren}`;
-
+    const fallbackUrl = `http://localhost:3000/api/auth/redirect?token=${customToken}&children=${encodedChildren}`;
 
     if (email) {
       // Email Invitation
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: process.env.EMAIL_USER, // Use environment variable
-          pass: process.env.EMAIL_PASS, // Use environment variable
+          user: process.env.EMAIL_USER, 
+          pass: process.env.EMAIL_PASS, 
         },
       });
 
       const mailOptions = {
-        from: process.env.EMAIL_USER, // Use environment variable
+        from: process.env.EMAIL_USER,
         to: email,
-        subject: "Your Invitation to Join",
+        subject: "Your Invitation to Sign Up to Scolarify",
         html: `
-        <p>Click below to join:</p>
-        <a href="${fallbackUrl}" 
-           style="display: inline-block; background-color: #0ab1d7; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-          Join Now
-        </a>
-        <br><br>
-        If the button doesn't work, copy and paste this link:<br>
-        <span>${fallbackUrl}</span>
-      `,
+          <p>Click below to Sign Up:</p>
+          <a href="${fallbackUrl}" 
+             style="display: inline-block; background-color: #0ab1d7; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+            Join Now
+          </a>
+          <br><br>
+          If the button doesn't work, copy and paste this link:<br>
+          <span>${fallbackUrl}</span>
+        `,
       };
 
       await transporter.sendMail(mailOptions);
       return res.status(200).json({ success: true, message: "Email invitation sent" });
     } else if (phone) {
-      // SMS Invitation using Firebase SMS Authentication
-      const actionCodeSettings = {
-        url: fallbackUrl,
-        handleCodeInApp: true,
-      };
-
-      await admin.auth().sendSignInLinkToPhoneNumber(phone, actionCodeSettings);
-
-      return res.status(200).json({ success: true, message: "SMS invitation sent" });
+      // SMS Invitation using a third-party service (Twilio recommended)
+      return res.status(400).json({ success: false, message: "SMS invitations require an external provider like Twilio." });
     }
 
-    return res.status(400).json({ success: false, message: "Email or phone is required" });
+    return res.status(400).json({ success: false, message: "Invalid request parameters" });
 
   } catch (error) {
     console.error("Error sending invitation:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 const redirectToApp = (req, res) => {
-  const { token, children } = req.query;
+  try {
+    const { token, children } = req.query;
 
-  if (!token) {
-    return res.status(400).json({ error: "Missing token" });
+    if (!token) {
+      return res.status(400).json({ error: "Missing token" });
+    }
+
+    if (!children) {
+      return res.status(400).json({ error: "Missing children" });
+    }
+
+    let childrenDecoded;
+
+    try {
+      console.log("Raw children:", children);
+
+      // Check if children is already JSON (to avoid double decoding)
+      if (children.startsWith("[") && children.endsWith("]")) {
+        childrenDecoded = JSON.parse(children);
+      } else {
+        // Decode Base64
+        const decodedChildren = Buffer.from(children, "base64").toString("utf-8");
+        console.log("Base64 Decoded children:", decodedChildren);
+
+        childrenDecoded = JSON.parse(decodedChildren);
+      }
+
+      if (!Array.isArray(childrenDecoded)) {
+        throw new Error("Children must be an array.");
+      }
+    } catch (error) {
+      console.error("Error parsing children:", error.message);
+      return res.status(400).json({ error: "Invalid children parameter" });
+    }
+
+    // Deep link to the mobile app
+    const deepLink = `myapp://signup?token=${token}&children=${encodeURIComponent(JSON.stringify(childrenDecoded))}`;
+    const fallbackUrl = `http://localhost:3000/api/auth/redirect?token=${token}&children=${encodeURIComponent(JSON.stringify(childrenDecoded))}`;
+
+    res.setHeader("Content-Type", "text/html"); // Ensuring correct content type
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Redirecting...</title>
+          <script>
+            document.addEventListener("DOMContentLoaded", function() {
+              // Try opening the deep link
+              window.location.href = "${deepLink}";
+
+              // If the app is not installed, redirect to web signup after 3 seconds
+              setTimeout(() => {
+                window.location.href = "${fallbackUrl}";
+              }, 3000);
+            });
+          </script>
+        </head>
+        <body>
+          <p>Redirecting you to the app...</p>
+          <p>If you are not redirected, <a href="${fallbackUrl}">click here</a>.</p>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
   }
-
-  if (!children) {
-    return res.status(400).json({ error: "Missing children" });
-  }
-
-  // Assuming the children is a JSON-encoded array or stringified array
-  const childrenDecoded = Array.isArray(children) ? children : JSON.parse(decodeURIComponent(children));
-
-  // Deep link to the mobile app with customToken and children
-  const deepLink = `myapp://signup?token=${token}&children=${encodeURIComponent(JSON.stringify(childrenDecoded))}`;
-
-  // Web fallback URL
-  const fallbackUrl = `http://localhost:3000/signup?token=${token}&children=${encodeURIComponent(JSON.stringify(childrenDecoded))}`;
-
-  res.send(`
-    <html>
-      <head>
-        <script>
-          // Try opening the deep link
-          window.location.href = "${deepLink}";
-
-          // If the app is not installed, redirect to web signup after 3 seconds
-          setTimeout(() => {
-            window.location.href = "${fallbackUrl}";
-          }, 3000);
-        </script>
-      </head>
-      <body>
-        <p>If you are not redirected, <a href="${fallbackUrl}">click here</a>.</p>
-      </body>
-    </html>
-  `);
 };
+
 
 module.exports = { loginUser, forgotPassword,sendInvitation,redirectToApp };
 

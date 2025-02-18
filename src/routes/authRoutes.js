@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/login', authController.loginUser);       // POST /api/auth/login
 router.post('/forgot-password', authController.forgotPassword); // POST /api/auth/forgot-password
 router.post('/invite-parent',authController.sendInvitation)
-router.post('/redirect',authController.redirectToApp)
+router.get('/redirect',authController.redirectToApp)
 // router.post('/signout', signOut);      // POST /api/auth/signout
 
 module.exports = router; 
