@@ -3,6 +3,7 @@ const fapshi = require('../utils/fapshi');
 const moment = require('moment'); // Moment.js for date handling
 const { ensureUniqueId } = require('../utils/generateId'); // Utility to generate unique IDs
 const Subscription = require('../models/Subscription');
+const User = require('../models/User');
 
 async function handleWebhook(req, res) {
   try {
@@ -92,15 +93,33 @@ async function handleWebhook(req, res) {
 
 const initiatePayment = async (req, res) => {
   try {
-    const data = req.body;
-    const response = await fapshi.initiatePay(data);
+    const { userId, amount, email, externalId } = req.body;
+
+    // Check if the user exists and has the role 'parent'
+    const user = await User.findById(userId);
+    if (!user || user.role !== 'parent') {
+      return res.status(403).json({ message: 'You do not have permission to initiate a payment.' });
+    }
+
+    // Proceed with initiating the payment
+    const response = await fapshi.initiatePay({userId, amount, email, externalId });
 
     res.status(200).json(response);
   } catch (error) {
     console.error('Error handling payment:', error);
-    res.status(500).send({ message: 'Internal Server Error' });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
+const checkPaymentStatus = async (req, res) => {
+  try {
+    const { transId } = req.params;
+    const response = await fapshi.paymentStatus(transId)
 
-module.exports = { handleWebhook,initiatePayment };
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error checking payment status:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+module.exports = { handleWebhook,initiatePayment, checkPaymentStatus};
