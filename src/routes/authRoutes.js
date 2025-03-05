@@ -9,6 +9,8 @@ router.post('/login', authController.loginUser);       // POST /api/auth/login
 router.post('/forgot-password', authController.forgotPassword); // POST /api/auth/forgot-password
 router.post('/invite-parent',authController.sendInvitation)
 router.get('/redirect',authController.redirectToApp)
+router.post('/get-code',authController.getCode)
+router.post('/verify-code',authController.verifyCode)
 // router.post('/signout', signOut);      // POST /api/auth/signout
 
 module.exports = router; 

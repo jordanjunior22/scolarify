@@ -1,7 +1,115 @@
 const admin = require("../utils/firebase");
+const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const User = require('../models/User');  // Assuming you have a User model
 const { auth, signInWithEmailAndPassword,sendPasswordResetEmail } = require('../utils/firebaseClient');
+
+
+
+const { Vonage } = require('@vonage/server-sdk');
+
+
+const generateVerificationCode = async (user) => {
+  const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const expirationTime = new Date(Date.now() + 1 * 60 * 1000); // Code expires in 1 minute
+
+  // Update user with the new code and expiration time
+  user.verificationCode = verificationCode;
+  user.verificationCodeExpires = expirationTime;
+  await user.save();
+
+  return verificationCode;
+};
+
+const getCode = async (req, res) => {
+  const { email, phone } = req.body;
+
+  try {
+    if (!email && !phone) {
+      return res.status(400).json({ message: "Email or phone number is required" });
+    }
+
+    let user = await User.findOne({ $or: [{ email }, { phone }] });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate and store the verification code
+    const verificationCode = await generateVerificationCode(user);
+
+    if (email) {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER, 
+          pass: process.env.EMAIL_PASS, 
+        },
+      });
+      // Send code via email
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "Your Verification Code",
+        text: `Your verification code is: ${verificationCode}. It expires in 1 minute.`,
+      };
+
+      await transporter.sendMail(mailOptions);
+      return res.status(200).json({ message: "Verification code sent to your email" });
+    } else if (phone) {
+      // Send code via SMS using Vonage
+
+      const vonage = new Vonage({
+        apiKey: process.env.VONAGE_API_KEY,
+        apiSecret: process.env.VONAGE_API_SECRET
+      });
+      const from = "Vonage";
+      const to = phone.startsWith("+") ? phone : `+${phone}`;
+      const text = `Your verification code is: ${verificationCode}. It expires in 1 minute.`;
+
+      await vonage.sms.send({ to, from, text });
+
+      return res.status(200).json({ message: "Verification code sent to your phone" });
+    } else {
+      return res.status(400).json({ message: "Email or phone number is required" });
+    }
+  } catch (error) {
+    console.error("Error sending verification code:", error);
+    return res.status(500).json({ message: "Error sending verification code" });
+  }
+};
+
+const verifyCode = async (req, res) => {
+  const { email, phone, verificationCode } = req.body;
+
+  try {
+    const user = await User.findOne(email ? { email } : { phone });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the verification code matches and is not expired
+    if (user.verificationCode !== verificationCode) {
+      return res.status(400).json({ message: "Invalid verification code" });
+    }
+
+    if (user.verificationCodeExpires < new Date()) {
+      return res.status(400).json({ message: "Verification code expired" });
+    }
+
+    // Mark the user as verified
+    user.isVerified = true;
+    user.verificationCode = null; // Remove the code after verification
+    user.verificationCodeExpires = null;
+    await user.save();
+
+    return res.status(200).json({ message: "Verification successful" });
+  } catch (error) {
+    console.error("Error verifying code:", error);
+    return res.status(500).json({ message: "Verification failed" });
+  }
+};
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -48,26 +156,48 @@ const forgotPassword = async (req, res) => {
 };
 
 const sendInvitation = async (req, res) => {
-  const { email, phone, role, childrenIds } = req.body;
+  const { name, email, phone, childrenIds } = req.body;
 
   try {
-    if (!email && !phone) {
-      return res.status(400).json({ success: false, message: "Email or phone is required" });
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
     }
 
+    const role = "parent";
+
     // Generate a Firebase custom token
-    const customToken = await admin.auth().createCustomToken(email || phone);
+    const firebaseUid = `parent_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const customToken = await admin.auth().createCustomToken(firebaseUid);
 
     // Ensure childrenIds is an array, otherwise set it as an empty array
     const validChildrenIds = Array.isArray(childrenIds) ? childrenIds : [];
     const encodedChildren = Buffer.from(JSON.stringify(validChildrenIds)).toString("base64");
 
     // Construct deep link
-    const appLink = `myapp://signup?token=${customToken}&children=${encodedChildren}`;
-    const fallbackUrl = `http://localhost:3000/api/auth/redirect?token=${customToken}&children=${encodedChildren}`;
+    const appLink = `myapp://signup?token=${customToken}&children=${encodedChildren}&name=${encodeURIComponent(name || "")}&role=${role}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
+    const fallbackUrl = `http://localhost:3000/api/auth/redirect?token=${customToken}&children=${encodedChildren}&name=${encodeURIComponent(name || "")}&role=${role}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
+
+    const saveUser = async () => {
+      // Check if the user already exists
+      const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+      if (existingUser) {
+        return res.status(400).json({ success: false, message: "User already invited" });
+      }
+      const randomNumber = Math.floor(Math.random() * 25000000);  // Random number between 0 and 24,999,999
+      const user_id = `PR-${randomNumber.toString().padStart(7, '0')}`;  // Format to always have 7 digits
+      // Save new user
+      const newUser = new User({
+        user_id,
+        name,
+        email, 
+        phone,
+        role,
+      });
+
+      await newUser.save();
+    };
 
     if (email) {
-      // Email Invitation
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -75,7 +205,7 @@ const sendInvitation = async (req, res) => {
           pass: process.env.EMAIL_PASS, 
         },
       });
-
+      // Email Invitation
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -91,14 +221,11 @@ const sendInvitation = async (req, res) => {
           <span>${fallbackUrl}</span>
         `,
       };
-
       await transporter.sendMail(mailOptions);
+      await saveUser(); // Save user to the database
       return res.status(200).json({ success: true, message: "Email invitation sent" });
-    } else if (phone) {
-      // SMS Invitation using a third-party service (Twilio recommended)
-      return res.status(400).json({ success: false, message: "SMS invitations require an external provider like Twilio." });
-    }
 
+    }
     return res.status(400).json({ success: false, message: "Invalid request parameters" });
 
   } catch (error) {
@@ -107,10 +234,9 @@ const sendInvitation = async (req, res) => {
   }
 };
 
-
 const redirectToApp = (req, res) => {
   try {
-    const { token, children } = req.query;
+    const { token, children, name,role, email,phone } = req.query;
 
     if (!token) {
       return res.status(400).json({ error: "Missing token" });
@@ -145,8 +271,13 @@ const redirectToApp = (req, res) => {
     }
 
     // Deep link to the mobile app
-    const deepLink = `myapp://signup?token=${token}&children=${encodeURIComponent(JSON.stringify(childrenDecoded))}`;
-    const fallbackUrl = `http://localhost:3000/api/auth/redirect?token=${token}&children=${encodeURIComponent(JSON.stringify(childrenDecoded))}`;
+    const deepLink = `myapp://signup?token=${token}&children=${encodeURIComponent(
+      JSON.stringify(childrenDecoded)
+    )}&name=${encodeURIComponent(name || "")}&role=${role}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
+
+    const fallbackUrl = `http://localhost:3000/api/auth/redirect?token=${token}&children=${encodeURIComponent(
+      JSON.stringify(childrenDecoded)
+    )}&name=${encodeURIComponent(name || "")}&role=${role}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
 
     res.setHeader("Content-Type", "text/html"); // Ensuring correct content type
     res.send(`
@@ -180,5 +311,6 @@ const redirectToApp = (req, res) => {
 };
 
 
-module.exports = { loginUser, forgotPassword,sendInvitation,redirectToApp };
+
+module.exports = { loginUser, forgotPassword,sendInvitation,redirectToApp ,getCode, verifyCode};
 
