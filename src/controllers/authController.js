@@ -159,8 +159,8 @@ const sendInvitation = async (req, res) => {
   const { name, email, phone, childrenIds } = req.body;
 
   try {
-    if (!email) {
-      return res.status(400).json({ success: false, message: "Email is required" });
+    if (!email && !phone) {
+      return res.status(400).json({ success: false, message: "Email & phone is required" });
     }
 
     const role = "parent";
