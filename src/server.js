@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const cors = require('cors'); 
 const routes = require('./routes/index'); // Import routes
 const connectDB = require('./utils/connectDB');
 
@@ -14,11 +15,11 @@ import('./middleware/arcjetMiddleware.mjs')
   .catch((error) => {
     console.error('Error loading middleware:', error);
   });
-
+ 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000; 
 
 // Middleware to parse JSON and URL-encoded data
 app.use(express.json());
