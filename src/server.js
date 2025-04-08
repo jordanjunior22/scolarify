@@ -23,7 +23,16 @@ const PORT = process.env.PORT || 3000;
 // Middleware to parse JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
- 
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000", // Pour le développement
+      "http://scholariryadmin.franckeldev.com", // Pour la production
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true, // Si tu utilises des cookies ou des en-têtes d'authentification
+  })
+);
 
 // Connect to MongoDB
 connectDB();  // Call the function to connect to the database
