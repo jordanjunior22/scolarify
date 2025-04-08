@@ -112,6 +112,23 @@ const getUserById = async (req, res) => {
   }
 };
 
+const getUserByEmail = async (req, res) => {
+  try {
+    const email = req.params.email;  // Get the email from the URL parameter
+
+    // Find the user by email
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' }); // If user not found
+    }
+
+    res.json(user); // Return the user data
+  } catch (err) {
+    res.status(500).json({ message: err.message }); // Handle server errors
+  }
+};
+
 // // Update user by ID
 const updateUserById = async (req, res) => {
   try {
@@ -161,5 +178,6 @@ module.exports = {
     updateUserById,
     deleteUserById,
     testUserResponse,
-    registerUser
+    registerUser,
+    getUserByEmail
  };
