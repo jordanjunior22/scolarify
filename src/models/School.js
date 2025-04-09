@@ -10,6 +10,12 @@ const schoolSchema = new mongoose.Schema({
     type: String,
     required: true,  // Ensures that the name field is required
   },
+  email: {
+    type: String,
+  },
+  description: {
+    type: String,
+  },
   address: {
     type: String,
     required: false,
