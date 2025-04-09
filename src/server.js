@@ -26,12 +26,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000", // Pour le développement
-      "http://scholariryadmin.franckeldev.com", // Pour la production
-    ],
+    origin: "*",  // This allows all origins
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true, // Si tu utilises des cookies ou des en-têtes d'authentification
+    credentials: true,  // If you are using cookies or authentication headers
   })
 );
 
