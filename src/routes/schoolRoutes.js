@@ -13,6 +13,8 @@ router.get('/get-schools' , authenticate, checkSubscription, authorize(['admin',
 // GET /school by id
 router.get('/get-school/:id' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , schoolController.getSchoolById);
 
+router.get('/get-school_id/:id' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , schoolController.getSchoolBy_id);
+
 // POST /schools to create a new school
 router.post('/create-school' , authenticate, authorize(['super']) ,  schoolController.createSchool);
 

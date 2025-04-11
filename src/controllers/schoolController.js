@@ -42,6 +42,20 @@ const getSchoolById = async (req, res) => {
   }
 };
 
+const getSchoolBy_id = async (req, res) => {
+  try {
+    const _id = mongoose.Types.ObjectId(req.params.id);
+
+    const school = await School.findById(_id);
+    if (!school) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+    res.json(school);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // // Update school by ID
 const updateSchoolById = async (req, res) => {
   try {
@@ -73,6 +87,7 @@ module.exports = {
   getAllSchools,
   createSchool,
   getSchoolById,
+  getSchoolBy_id,
   updateSchoolById,
   deleteSchoolById,
 };
