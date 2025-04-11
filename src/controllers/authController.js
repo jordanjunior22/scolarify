@@ -8,6 +8,35 @@ const { auth, signInWithEmailAndPassword,sendPasswordResetEmail } = require('../
 
 const { Vonage } = require('@vonage/server-sdk');
 
+const verifyPassword = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  try {
+    // Find user by email (assuming the email is unique)
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Compare entered password with stored hash
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (isMatch) {
+      return res.status(200).json({ message: 'Password is valid' });
+    } else {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
+  } catch (error) {
+    console.error('Error comparing password:', error);
+    return res.status(500).json({ message: 'Error verifying password' });
+  }
+};
+
 
 const generateVerificationCode = async (user) => {
   const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -312,5 +341,5 @@ const redirectToApp = (req, res) => {
 
 
 
-module.exports = { loginUser, forgotPassword,sendInvitation,redirectToApp ,getCode, verifyCode};
+module.exports = { loginUser, forgotPassword,sendInvitation,redirectToApp ,getCode, verifyCode,verifyPassword};
 
