@@ -73,6 +73,30 @@ const deleteAnnouncementById = async (req, res) => {
   }
 };
 
+// Delete multiple announcements by MongoDB _id
+const deleteMultipleAnnouncements = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Please provide ids to delete.' });
+    }
+
+    const result = await Announcement.deleteMany({ _id: { $in: ids } });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No announcements found for the provided IDs.' });
+    }
+
+    res.json({ 
+      message: `${result.deletedCount} announcement(s) deleted successfully.`,
+      deletedCount: result.deletedCount
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   testAnnouncementResponse,
   getAllAnnouncements,
@@ -80,4 +104,5 @@ module.exports = {
   getAnnouncementById,
   updateAnnouncementById,
   deleteAnnouncementById,
+  deleteMultipleAnnouncements,
 };
