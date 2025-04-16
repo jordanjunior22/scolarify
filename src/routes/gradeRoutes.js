@@ -21,4 +21,6 @@ router.put('/update-grade/:id' , authenticate, authorize(['admin', 'super', 'tea
 // DELETE /grades/:id to delete a specific grade record
 router.delete('/delete-grade/:id' , authenticate, authorize(['admin', 'super', 'teacher']) , gradeController.deleteGradeById);
 
+//DELETE multiple grades
+router.delete('/delete-grades', authenticate, authorize(['admin', 'super', 'teacher']), gradeController.deleteMultipleGrades);
 module.exports = router;

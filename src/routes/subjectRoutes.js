@@ -22,4 +22,7 @@ router.put('/update-subject/:id', authenticate, authorize(['admin', 'super']) , 
 // DELETE /subjects/:id to delete a specific subject
 router.delete('/delete-subject/:id', authenticate, authorize(['admin', 'super']) ,  subjectController.deleteSubjectById);
 
+//DELETE multiple subjects
+router.delete('/delete-subjects', authenticate, authorize(['admin', 'super']), subjectController.deleteMultipleSubjects);
+
 module.exports = router; 

@@ -64,6 +64,28 @@ const deletePeriodById = async (req, res) => {
   }
 };
 
+// Delete multiple period records by IDs
+const deleteMultiplePeriods = async (req, res) => {
+  const { ids } = req.body; // Expecting an array of period IDs in the request body
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+  }
+
+  try {
+    // Delete period records where _id is in the provided array of IDs
+    const result = await Period.deleteMany({ _id: { $in: ids } });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No period records found for the provided IDs' });
+    }
+    
+    res.json({ message: `${result.deletedCount} period records deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 module.exports = {
   testPeriodResponse,
   getAllPeriods,
@@ -71,4 +93,5 @@ module.exports = {
   getPeriodById,
   updatePeriodById,
   deletePeriodById,
+  deleteMultiplePeriods,
 };

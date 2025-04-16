@@ -68,6 +68,27 @@ const deleteClassById = async (req, res) => {
   }
 };
 
+// Delete multiple class records
+const deleteMultipleClasses = async (req, res) => {
+  const { ids } = req.body; // Expecting an array of class IDs in the request 
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+  }
+
+  try {
+    // Delete class records where class_id is in the provided array of IDs
+    const result = await Class.deleteMany({ class_id: { $in: ids } });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No class records found for the provided IDs' });
+    }
+    
+    res.json({ message: `${result.deletedCount} class records deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   testClassResponse,
   getAllClasses,
@@ -75,4 +96,5 @@ module.exports = {
   getClassById,
   updateClassById,
   deleteClassById,
+  deleteMultipleClasses,
 };

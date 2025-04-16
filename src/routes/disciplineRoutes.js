@@ -21,4 +21,6 @@ router.put('/update-discipline/:id' , authenticate, authorize(['admin', 'super']
 // DELETE /disciplines/:id to delete a specific discipline record
 router.delete('/delete-discipline/:id' , authenticate, authorize(['admin', 'super']) , disciplineController.deleteDisciplineById);
 
+//DELETE mutiple discipline records
+router.delete('/delete-disciplines', authenticate, authorize(['admin', 'super']), disciplineController.deleteMultipleDisciplines);
 module.exports = router;

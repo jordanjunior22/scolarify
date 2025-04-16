@@ -10,4 +10,7 @@ router.post('/create-class-schedule', authenticate, authorize(['admin', 'super']
 router.put('/update-class-schedule/:id', authenticate, authorize(['admin', 'super']), classScheduleController.updateClassScheduleById);
 router.delete('/delete-class-schedule/:id', authenticate, authorize(['admin', 'super']), classScheduleController.deleteClassScheduleById);
 
+//delete multiple class schedules
+router.delete('/delete-class-schedules', authenticate, authorize(['admin', 'super']), classScheduleController.deleteMultipleClassSchedules);
+
 module.exports = router;

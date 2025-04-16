@@ -74,11 +74,33 @@ const deleteSubjectById = async (req, res) => {
   }
 };
 
+// Delete multiple subject records by IDs
+const deleteMultipleSubjects = async (req, res) => {
+  const { ids } = req.body; // Expecting an array of subject IDs in the request body
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+  }
+
+  try {
+    // Delete subject records where _id is in the provided array of IDs
+    const result = await Subject.deleteMany({ _id: { $in: ids } });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No subject records found for the provided IDs' });
+    }
+    
+    res.json({ message: `${result.deletedCount} subject records deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   testSubjectResponse,
   getAllSubjects,
   createSubject, 
   getSubjectById,
   updateSubjectById,
-  deleteSubjectById, 
+  deleteSubjectById,
+  deleteMultipleSubjects,
 };

@@ -68,6 +68,28 @@ const deleteDisciplineById = async (req, res) => {
   }
 };
 
+
+// Delete multiple discipline records by IDs
+const deleteMultipleDisciplines = async (req, res) => {
+  const { ids } = req.body; // Expecting an array of discipline IDs in the request body
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+  }
+
+  try {
+    // Delete discipline records where _id is in the provided array of IDs
+    const result = await Discipline.deleteMany({ _id: { $in: ids } });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No discipline records found for the provided IDs' });
+    }
+    
+    res.json({ message: `${result.deletedCount} discipline records deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   testDisciplineResponse,
   getAllDisciplines,
@@ -75,4 +97,5 @@ module.exports = {
   getDisciplineById,
   updateDisciplineById,
   deleteDisciplineById,
+  deleteMultipleDisciplines,
 };

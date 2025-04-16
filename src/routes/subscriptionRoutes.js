@@ -22,4 +22,6 @@ router.put('/update-subscription/:id' , authenticate, authorize(['admin', 'super
 // DELETE /subscriptions/:id to delete a specific subscription record
 router.delete('/delete-subscription/:id', authenticate, authorize(['super']),  subscriptionController.deleteSubscriptionById);
 
+//DELETE multiple subscription records
+router.delete('/delete-subscriptions', authenticate, authorize(['super']), subscriptionController.deleteMultipleSubscriptions);
 module.exports = router;

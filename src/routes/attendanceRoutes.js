@@ -22,4 +22,7 @@ router.put('/update-attendance/:id' , authenticate, authorize(['admin', 'super',
 // DELETE /attendances/:id to delete a specific attendance record
 router.delete('/delete-attendance/:id' , authenticate, authorize(['admin', 'super', 'teacher']) , attendanceController.deleteAttendanceById);
 
+//DELETE multiple attendance records
+router.delete('/delete-attendances' , authenticate, authorize(['admin', 'super', 'teacher']), attendanceController.deleteMultipleAttendances);
+
 module.exports = router;
