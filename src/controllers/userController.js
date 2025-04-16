@@ -112,6 +112,23 @@ const getUserById = async (req, res) => {
   }
 };
 
+const getUserBy_id = async (req, res) => {
+  try {
+    const _id = req.params.id; // Get the MongoDB _id from the URL
+
+    // Find the user by MongoDB's _id
+    const user = await User.findById(_id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user); // Return the user data
+  } catch (err) {
+    res.status(500).json({ message: err.message }); // Handle server errors
+  }
+};
+
 const getUserByEmail = async (req, res) => {
   try {
     const email = req.params.email;  // Get the email from the URL parameter
@@ -201,5 +218,6 @@ module.exports = {
     deleteMultipleUsers, //the new function
     testUserResponse,
     registerUser,
-    getUserByEmail
+    getUserByEmail,
+    getUserBy_id,
  };

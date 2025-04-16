@@ -11,6 +11,7 @@ router.get('/get-users', authenticate, checkSubscription, authorize(['admin', 's
 
 // Route to get user by user_id
 router.get('/get-user/:id', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']), userController.getUserById);
+router.get('/get-user-by-id/:id', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']), userController.getUserBy_id);
 router.get('/get-user-email/:email', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']), userController.getUserByEmail);
 
 // POST /users to create a new user
