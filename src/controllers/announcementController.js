@@ -81,7 +81,7 @@ const deleteMultipleAnnouncements = async (req, res) => {
 
   try {
     // Delete announcements where announcement_id is in the provided array of IDs
-    const result = await Announcement.deleteMany({ announcement_id: { $in: ids } });
+    const result = await Announcement.deleteMany({ _id: { $in: ids } });
     
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: 'No announcements found for the provided IDs' });
