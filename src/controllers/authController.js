@@ -156,7 +156,10 @@ const loginUser = async (req, res) => {
     // After login, get the Firebase ID token
     const idToken = await userCredential.user.getIdToken();
 
-
+    // ✅ Update lastLogin timestamp
+    user.lastLogin = new Date();
+    await user.save(); // Save the updated user document
+    
     return res.status(200).json({ message: 'Login successful', idToken}); 
   } catch (error) {
     console.error(error);
