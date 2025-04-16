@@ -3,7 +3,7 @@ const axios = require('axios');
 const baseUrl = 'https://sandbox.fapshi.com'
 const headers =  {
     apiuser: 'e3f28598-9248-49bc-84c6-ca491e94b25c',
-    apikey: 'FAK_TEST_c61281fedbd87d30e06d'
+    apikey: 'FAK_TEST_c61281fedbd87d30e06d' 
 }
 
 module.exports = {

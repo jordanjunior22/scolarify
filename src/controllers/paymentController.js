@@ -14,7 +14,8 @@ async function handleWebhook(req, res) {
       return res.status(400).send({ message: event.message });
     }
 
-    const { transId, email, amount, dateInitiated, userId,externalId } = req.body;
+    console.log('Received webhook event:', event);
+    const { transId, email, amount, dateInitiated, userId,externalId } = event; 
     const subscriptionId = await ensureUniqueId(Subscription, 'subscription_id', 'SUB');
     const student_id = externalId.split("_");
     // Handle the event based on the status
@@ -83,7 +84,7 @@ async function handleWebhook(req, res) {
         console.log(`Unhandled event status: ${event.status}`);
     }
 
-    // Return a 200 response to acknowledge receipt of the event
+    //Return a 200 response to acknowledge receipt of the event
     res.send();
   } catch (error) {
     console.error('Error handling webhook:', error);
