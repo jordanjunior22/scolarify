@@ -22,4 +22,6 @@ router.put('/update-user/:id', authenticate, checkSubscription, authorize(['admi
 // DELETE /users/:id to delete a specific user
 router.delete('/delete-user/:id', authenticate, authorize(['admin', 'super']), userController.deleteUserById);
 
+//DELETE multiple users
+router.delete('/delete-users', authenticate, authorize(['admin', 'super']), userController.deleteMultipleUsers);
 module.exports = router;

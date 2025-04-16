@@ -21,4 +21,6 @@ router.put('/update-announcement/:id' , authenticate, authorize(['admin', 'super
 // DELETE /announcements/:id to delete a specific announcement record
 router.delete('/delete-announcement/:id' , authenticate, authorize(['admin', 'super']) , announcementController.deleteAnnouncementById);
 
+// DELETE multiple announcements
+router.delete('/delete-announcements', authenticate, authorize(['admin', 'super']), announcementController.deleteMultipleAnnouncements);
 module.exports = router;

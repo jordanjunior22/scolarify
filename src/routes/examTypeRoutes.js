@@ -11,4 +11,6 @@ router.post('/exam-types', authenticate, authorize(['admin', 'super']), examType
 router.put('/exam-types/:id', authenticate, authorize(['admin', 'super']), examTypeController.updateExamTypeById);
 router.delete('/exam-types/:id', authenticate, authorize(['admin', 'super']), examTypeController.deleteExamTypeById);
 
+//DELETE multiple exam types
+router.delete('/delete-exam-types', authenticate, authorize(['admin', 'super']), examTypeController.deleteMultipleExamTypes);
 module.exports = router;

@@ -21,4 +21,6 @@ router.put('/update-resource/:id' , authenticate, authorize(['admin', 'super']) 
 // DELETE /resources/:id to delete a specific resource record
 router.delete('/delete-resource/:id' , authenticate, authorize(['admin', 'super']) , resourceController.deleteResourceById);
 
+//DELETE multiple resources
+router.delete('/delete-resources', authenticate, authorize(['admin', 'super']), resourceController.deleteMultipleResources);
 module.exports = router;

@@ -67,6 +67,28 @@ const deleteAttendanceById = async (req, res) => {
   }
 };
 
+
+// Delete multiple attendance records by IDs
+const deleteMultipleAttendances = async (req, res) => {
+  const { ids } = req.body; // Expecting an array of attendance IDs in the request 
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+  }
+
+  try {
+    // Delete attendance records where _id is in the provided array of IDs
+    const result = await Attendance.deleteMany({ _id: { $in: ids } });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No attendance records found for the provided IDs' });
+    }
+    
+    res.json({ message: `${result.deletedCount} attendance records deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   testAttendanceResponse,
   getAllAttendance,
@@ -74,4 +96,5 @@ module.exports = {
   getAttendanceById,
   updateAttendanceById,
   deleteAttendanceById,
+  deleteMultipleAttendances,
 };

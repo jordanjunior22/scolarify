@@ -64,11 +64,33 @@ const deleteExamTypeById = async (req, res) => {
   }
 };
 
+// Delete multiple exam type records by IDs
+const deleteMultipleExamTypes = async (req, res) => {
+  const { ids } = req.body; // Expecting an array of exam type IDs in the request body
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+  }
+
+  try {
+    // Delete exam type records where _id is in the provided array of IDs
+    const result = await ExamType.deleteMany({ _id: { $in: ids } });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No exam type records found for the provided IDs' });
+    }
+    
+    res.json({ message: `${result.deletedCount} exam type records deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   getAllExamTypes,
   getExamTypeById,
   createExamType,
   updateExamTypeById,
   deleteExamTypeById,
-  testexamType
+  testexamType,
+  deleteMultipleExamTypes,
 };

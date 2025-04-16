@@ -21,4 +21,6 @@ router.put('/update-student/:id' , authenticate, authorize(['admin', 'super']) ,
 // DELETE /students/:id to delete a specific student record
 router.delete('/delete-student/:id' , authenticate, authorize(['admin', 'super']) , studentController.deleteStudentById);
 
+//DELETE multiple students
+router.delete('/delete-students', authenticate, authorize(['admin', 'super']), studentController.deleteMultipleStudents);
 module.exports = router;

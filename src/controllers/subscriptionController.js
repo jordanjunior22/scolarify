@@ -69,6 +69,27 @@ const deleteSubscriptionById = async (req, res) => {
   }
 };
 
+// Delete multiple subscription records by IDs
+const deleteMultipleSubscriptions = async (req, res) => {
+  const { ids } = req.body; // Expecting an array of subscription IDs in the request body
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+  }
+
+  try {
+    // Delete subscription records where _id is in the provided array of IDs
+    const result = await Subscription.deleteMany({ _id: { $in: ids } });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No subscription records found for the provided IDs' });
+    }
+    
+    res.json({ message: `${result.deletedCount} subscription records deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   testSubscriptionResponse,
   getAllSubscriptions,
@@ -76,4 +97,5 @@ module.exports = {
   getSubscriptionById,
   updateSubscriptionById,
   deleteSubscriptionById,
+  deleteMultipleSubscriptions,
 };

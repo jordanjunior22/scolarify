@@ -171,12 +171,34 @@ const deleteUserById = async (req, res) => {
   }
 };
 
+// Delete multiple user records by IDs
+const deleteMultipleUsers = async (req, res) => {
+  const { ids } = req.body; // Expecting an array of user IDs in the request body
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+  }
+
+  try {
+    // Delete user records where _id is in the provided array of IDs
+    const result = await User.deleteMany({ _id: { $in: ids } });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No user records found for the provided IDs' });
+    }
+    
+    res.json({ message: `${result.deletedCount} user records deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
     getAllUsers,
     createUser,
     getUserById,
     updateUserById,
     deleteUserById,
+    deleteMultipleUsers, //the new function
     testUserResponse,
     registerUser,
     getUserByEmail

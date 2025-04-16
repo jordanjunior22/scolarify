@@ -22,4 +22,7 @@ router.put('/update-class/:id' , authenticate, authorize(['admin', 'super']) , c
 // DELETE /classes/:id to delete a specific class
 router.delete('/delete-class/:id' , authenticate, authorize(['admin', 'super']) , classController.deleteClassById);
 
+//DELETE multiple classes
+router.delete('/delete-classes', authenticate, authorize(['admin', 'super']), classController.deleteMultipleClasses);
+
 module.exports = router;

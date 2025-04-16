@@ -77,6 +77,28 @@ const deleteClassScheduleById = async (req, res) => {
   }
 };
 
+
+// Delete multiple class schedule records by IDs
+const deleteMultipleClassSchedules = async (req, res) => {
+  const { ids } = req.body; // Expecting an array of class schedule IDs in the request body
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+  }
+
+  try {
+    // Delete class schedule records where _id is in the provided array of IDs
+    const result = await ClassSchedule.deleteMany({ _id: { $in: ids } });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No class schedule records found for the provided IDs' });
+    }
+    
+    res.json({ message: `${result.deletedCount} class schedule records deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   testClassScheduleResponse,
   getAllClassSchedules,
@@ -84,4 +106,5 @@ module.exports = {
   getClassScheduleById,
   updateClassScheduleById,
   deleteClassScheduleById,
+  deleteMultipleClassSchedules,
 };

@@ -72,6 +72,26 @@ const deleteAnnouncementById = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+// // Delete multiple announcements by IDs
+const deleteMultipleAnnouncements = async (req, res) => {
+  const { ids } = req.body; // Expecting an array of announcement_ids in the request body
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+  }
+
+  try {
+    // Delete announcements where announcement_id is in the provided array of IDs
+    const result = await Announcement.deleteMany({ announcement_id: { $in: ids } });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No announcements found for the provided IDs' });
+    }
+    
+    res.json({ message: `${result.deletedCount} announcements deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 module.exports = {
   testAnnouncementResponse,
@@ -80,4 +100,5 @@ module.exports = {
   getAnnouncementById,
   updateAnnouncementById,
   deleteAnnouncementById,
+  deleteMultipleAnnouncements,
 };

@@ -66,6 +66,28 @@ const deleteResourceById = async (req, res) => {
   }
 };
 
+
+// Delete multiple resource records by IDs
+const deleteMultipleResources = async (req, res) => {
+  const { ids } = req.body; // Expecting an array of resource IDs in the request 
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
+  }
+
+  try {
+    // Delete resource records where _id is in the provided array of IDs
+    const result = await Resource.deleteMany({ _id: { $in: ids } });
+    
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No resource records found for the provided IDs' });
+    }
+    
+    res.json({ message: `${result.deletedCount} resource records deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   testResourcesResponse,
   getAllResources,
@@ -73,4 +95,5 @@ module.exports = {
   getResourceById,
   updateResourceById,
   deleteResourceById,
+  deleteMultipleResources,
 };

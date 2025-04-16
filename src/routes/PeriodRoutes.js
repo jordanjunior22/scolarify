@@ -11,4 +11,6 @@ router.post('/create-period', authenticate, authorize(['admin', 'super']), perio
 router.put('/update-period/:id', authenticate, authorize(['admin', 'super']), periodController.updatePeriodById);
 router.delete('/delete-period/:id', authenticate, authorize(['admin', 'super']), periodController.deletePeriodById);
 
+//DELETE multiple periods
+router.delete('/delete-periods', authenticate, authorize(['admin', 'super']), periodController.deleteMultiplePeriods);
 module.exports = router;

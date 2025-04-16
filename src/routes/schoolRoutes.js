@@ -24,4 +24,7 @@ router.put('/update-school/:id' , authenticate, authorize(['admin', 'super']) , 
 // DELETE /schools/:id to delete a specific school
 router.delete('/delete-school/:id' , authenticate, authorize(['super']) , schoolController.deleteSchoolById);
 
+//DELETE multiple schools
+router.delete('/delete-schools', authenticate, authorize(['super']), schoolController.deleteMultipleSchools);
+
 module.exports = router;
