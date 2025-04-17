@@ -7,13 +7,13 @@ const testClassLevel = (req, res) => {
 
 // Get all class levels
 const getAllClassLevels = async (req, res) => {
-  try {
-    const levels = await ClassLevel.find().populate('school_id'); // Optional: populate school details
-    res.json(levels);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
+    try {
+      const levels = await ClassLevel.find(); // 
+      res.json(levels);
+    } catch (err) {
+      res.status(500).json({ message: err.message });a
+    }
+  };
 
 // Create a new class level
 const createClassLevel = async (req, res) => {
@@ -35,7 +35,7 @@ const createClassLevel = async (req, res) => {
 // Get a class level by ID
 const getClassLevelById = async (req, res) => {
   try {
-    const level = await ClassLevel.findById(req.params.id).populate('school_id');
+    const level = await ClassLevel.findById(req.params.id); // Removed .populate
     if (!level) {
       return res.status(404).json({ message: 'Class Level not found' });
     }
