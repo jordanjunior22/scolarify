@@ -15,8 +15,8 @@ const classSchema = new mongoose.Schema({
     required: true, // Ensures that the name field is required
   },
   class_level: {
-    type: String,
-    required: true, // Ensures that the name field is required
+    type: mongoose.Schema.Types.ObjectId, // Reference to the Discipline model
+    ref: 'ClassLevel',
   },
   class_code:{
     type: String,
