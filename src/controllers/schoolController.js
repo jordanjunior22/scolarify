@@ -44,7 +44,7 @@ const getSchoolById = async (req, res) => {
 
 const getSchoolBy_id = async (req, res) => {
   try {
-    const _id = mongoose.Types.ObjectId(req.params.id);
+    const _id = new mongoose.Types.ObjectId(req.params.id);
 
     const school = await School.findById(_id);
     if (!school) {
