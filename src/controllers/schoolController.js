@@ -1,5 +1,5 @@
 // controllers/schoolController.js
-
+const mongoose = require('mongoose');
 const School = require('../models/School'); // Assuming you have a School model
 const { ensureUniqueId } = require('../utils/generateId'); 
 
