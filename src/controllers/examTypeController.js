@@ -1,4 +1,6 @@
 const ExamType = require('../models/ExamType');
+const mongoose = require('mongoose');
+
 
 // ✅ Get all exam types
 const testexamType = (req, res) => {
@@ -16,8 +18,9 @@ const getAllExamTypes = async (req, res) => {
 
 // ✅ Get a single exam type by ID
 const getExamTypeById = async (req, res) => {
+  const _id = new mongoose.Types.ObjectId(req.params.id);
   try {
-    const examType = await ExamType.findById(req.params.id);
+    const examType = await ExamType.findById(_id);
     if (!examType) {
       return res.status(404).json({ message: 'Exam type not found' });
     }

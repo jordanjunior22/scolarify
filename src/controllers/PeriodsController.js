@@ -7,7 +7,7 @@ const testPeriodResponse = (req, res) => {
 // Get all periods
 const getAllPeriods = async (req, res) => {
   try {
-    const periods = await Period.find().populate("school_id", "name");
+    const periods = await Period.find();
     res.json(periods);
   } catch (err) {
     res.status(500).json({ message: err.message });  
@@ -28,7 +28,7 @@ const createPeriod = async (req, res) => {
 // Get a period by ID
 const getPeriodById = async (req, res) => {
   try {
-    const period = await Period.findById(req.params.id).populate("school_id", "name");
+    const period = await Period.findById(req.params.id);
     if (!period) {
       return res.status(404).json({ message: "Period not found" });
     }

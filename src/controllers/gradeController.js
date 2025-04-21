@@ -1,5 +1,6 @@
 const Grade = require('../models/Grade'); // Assuming you have a Grade model
 const { ensureUniqueId } = require('../utils/generateId'); 
+const mongoose = require('mongoose');
 
 const testGradeResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is grade' });
@@ -28,8 +29,9 @@ const createGrade = async (req, res) => {
 
 // // Get a grade record by ID
 const getGradeById = async (req, res) => {
+  const _id = new mongoose.Types.ObjectId(req.params.id);
   try {
-    const grade = await Grade.findById(req.params.id);
+    const grade = await Grade.findById(_id);
     if (!grade) {
       return res.status(404).json({ message: 'Grade record not found' });
     }
