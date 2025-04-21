@@ -12,6 +12,7 @@ router.get('/get-students' , authenticate, checkSubscription, authorize(['admin'
 // Get students by ID
 router.get('/get-student/:id' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , studentController.getStudentById);
 
+router.get("/class/:classId/school/:schoolId", studentController.getStudentsByClassAndSchool);
 // POST /students to create a new student record
 router.post('/create-student' , authenticate, authorize(['admin', 'super']) ,  studentController.createStudent);
 

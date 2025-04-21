@@ -27,6 +27,21 @@ const createStudent = async (req, res) => {
   }
 };
 
+const getStudentsByClassAndSchool = async (req, res) => {
+  const { classId, schoolId } = req.params;
+
+  try {
+    const students = await Student.find({
+      class_id: classId,
+      school_id: schoolId,
+    });
+
+    res.json(students);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // // Get a student record by ID
 const getStudentById = async (req, res) => {
   try {
@@ -95,4 +110,5 @@ module.exports = {
   updateStudentById,
   deleteStudentById,
   deleteMultipleStudents,
+  getStudentsByClassAndSchool
 };
