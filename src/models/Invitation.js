@@ -5,6 +5,12 @@ const InvitationSchema = new mongoose.Schema({
   email: { type: String, required: true },
   phone: { type: String },
   name: { type: String },
+  school_ids: [
+    {
+      type: mongoose.Schema.Types.ObjectId, // Reference to the School model
+      ref: "School",
+    },
+  ],
   childrenIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
   token: { type: String, required: true },
   status: {
