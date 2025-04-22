@@ -57,7 +57,7 @@ const userSchema = new mongoose.Schema(
     student_ids: [
       {
         type: mongoose.Schema.Types.ObjectId, // Reference to the School model
-        ref: "Student",
+        ref: "Student", 
       },
     ],
     isVerified: {
