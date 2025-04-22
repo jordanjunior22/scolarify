@@ -54,6 +54,12 @@ const userSchema = new mongoose.Schema(
         ref: "School",
       },
     ],
+    student_ids: [
+      {
+        type: mongoose.Schema.Types.ObjectId, // Reference to the School model
+        ref: "Student",
+      },
+    ],
     isVerified: {
       type: Boolean,
       default: false,

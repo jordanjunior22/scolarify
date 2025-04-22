@@ -2,7 +2,10 @@ const admin = require("../utils/firebase");
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const User = require('../models/User');  // Assuming you have a User model
-const { auth, signInWithEmailAndPassword,sendPasswordResetEmail } = require('../utils/firebaseClient');
+const Invitation = require('../models/Invitation'); // Assuming you have an Invitation model
+const { ensureUniqueId } = require('../utils/generateId');
+const { auth, signInWithEmailAndPassword, sendPasswordResetEmail } = require('../utils/firebaseClient');
+const mongoose = require('mongoose');
 
 
 
@@ -71,8 +74,8 @@ const getCode = async (req, res) => {
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: process.env.EMAIL_USER, 
-          pass: process.env.EMAIL_PASS, 
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
         },
       });
       // Send code via email
@@ -151,7 +154,7 @@ const loginUser = async (req, res) => {
     }
 
     // Verify user with Firebase Authentication (email/password)
-    const userCredential = await signInWithEmailAndPassword(auth, email, password); 
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
     // After login, get the Firebase ID token
     const idToken = await userCredential.user.getIdToken();
@@ -159,8 +162,8 @@ const loginUser = async (req, res) => {
     // ✅ Update lastLogin timestamp
     user.lastLogin = new Date();
     await user.save(); // Save the updated user document
-    
-    return res.status(200).json({ message: 'Login successful', idToken}); 
+
+    return res.status(200).json({ message: 'Login successful', idToken });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Login failed', error: error.message });
@@ -192,157 +195,171 @@ const sendInvitation = async (req, res) => {
 
   try {
     if (!email && !phone) {
-      return res.status(400).json({ success: false, message: "Email & phone is required" });
+      return res.status(400).json({ success: false, message: "Email & phone are required" });
     }
 
     const role = "parent";
 
-    // Generate a Firebase custom token
+    // Step 1: Check if user already exists
+    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "User already registered" });
+    }
+
+    // Step 2: Check if invitation already exists
+    const existingInvite = await Invitation.findOne({ email, status: "pending" });
+    if (existingInvite) {
+      return res.status(400).json({ success: false, message: "Invitation already sent" });
+    }
+
+    // Step 3: Generate Firebase token and encode childrenIds
     const firebaseUid = `parent_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     const customToken = await admin.auth().createCustomToken(firebaseUid);
 
-    // Ensure childrenIds is an array, otherwise set it as an empty array
-    const validChildrenIds = Array.isArray(childrenIds) ? childrenIds : [];
+    let validChildrenIds = [];
+
+    if (Array.isArray(childrenIds)) {
+      validChildrenIds = childrenIds.map(id => new mongoose.Types.ObjectId(id));
+    }
     const encodedChildren = Buffer.from(JSON.stringify(validChildrenIds)).toString("base64");
 
-    // Construct deep link
-    const appLink = `myapp://signup?token=${customToken}&children=${encodedChildren}&name=${encodeURIComponent(name || "")}&role=${role}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
-    const fallbackUrl = `http://localhost:3000/api/auth/redirect?token=${customToken}&children=${encodedChildren}&name=${encodeURIComponent(name || "")}&role=${role}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
+    const nameEncoded = encodeURIComponent(name || "");
+    const emailEncoded = encodeURIComponent(email);
+    const phoneEncoded = encodeURIComponent(phone);
 
-    const saveUser = async () => {
-      // Check if the user already exists
-      const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
-      if (existingUser) {
-        return res.status(400).json({ success: false, message: "User already invited" });
-      }
-      const randomNumber = Math.floor(Math.random() * 25000000);  // Random number between 0 and 24,999,999
-      const user_id = `PR-${randomNumber.toString().padStart(7, '0')}`;  // Format to always have 7 digits
-      // Save new user
-      const newUser = new User({
-        user_id,
-        name,
-        email, 
-        phone,
-        role,
-      });
+    // Step 4: Create deep link and fallback URL
+    const smartBaseUrl = "https://appurl.io/Zp2utUbj7g";
+    const smartLink = `${smartBaseUrl}?token=${customToken}&children=${encodedChildren}&name=${nameEncoded}&role=${role}&email=${emailEncoded}&phone=${phoneEncoded}`;
+    // Step 5: Save invitation to database
+    const newInvitation = new Invitation({
+      name,
+      email,
+      phone,
+      childrenIds: validChildrenIds,
+      token: customToken,
+      status: "pending",
+    });
 
-      await newUser.save();
+    await newInvitation.save();
+
+    // Step 6: Send Email
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "You have been invited to join Scolarify",
+      html: `
+        <p>Hello ${name || "Parent"},</p>
+        <p>You have been invited to stay connected with your child's school activity via Scolarify.</p>
+        <a href="${smartLink}" style="display:inline-block;padding:10px 20px;background-color:#0ab1d7;color:#fff;text-decoration:none;border-radius:5px;">Join Now</a>
+        <p>If the button doesn't work, copy and paste this URL into your browser:</p>
+        <p>${smartLink}</p>
+      `,
     };
 
-    if (email) {
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER, 
-          pass: process.env.EMAIL_PASS, 
-        },
-      });
-      // Email Invitation
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "Your Invitation to Sign Up to Scolarify",
-        html: `
-          <p>Click below to Sign Up:</p>
-          <a href="${fallbackUrl}" 
-             style="display: inline-block; background-color: #0ab1d7; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-            Join Now
-          </a>
-          <br><br>
-          If the button doesn't work, copy and paste this link:<br>
-          <span>${fallbackUrl}</span>
-        `,
-      };
-      await transporter.sendMail(mailOptions);
-      await saveUser(); // Save user to the database
-      return res.status(200).json({ success: true, message: "Email invitation sent" });
+    await transporter.sendMail(mailOptions);
 
-    }
-    return res.status(400).json({ success: false, message: "Invalid request parameters" });
+    return res.status(200).json({
+      success: true,
+      message: "Invitation sent successfully.",
+    });
 
   } catch (error) {
     console.error("Error sending invitation:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
 
 const redirectToApp = (req, res) => {
   try {
-    const { token, children, name,role, email,phone } = req.query;
+    const { token, children, name, role, email, phone } = req.query;
 
-    if (!token) {
-      return res.status(400).json({ error: "Missing token" });
-    }
+    const deepLink = `myapp://signup?token=${token}&children=${children}&name=${encodeURIComponent(name || '')}&role=${role}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
 
-    if (!children) {
-      return res.status(400).json({ error: "Missing children" });
-    }
+    // Redirect to the app
+    // return res.redirect(deepLink);
 
-    let childrenDecoded;
-
-    try {
-      console.log("Raw children:", children);
-
-      // Check if children is already JSON (to avoid double decoding)
-      if (children.startsWith("[") && children.endsWith("]")) {
-        childrenDecoded = JSON.parse(children);
-      } else {
-        // Decode Base64
-        const decodedChildren = Buffer.from(children, "base64").toString("utf-8");
-        console.log("Base64 Decoded children:", decodedChildren);
-
-        childrenDecoded = JSON.parse(decodedChildren);
-      }
-
-      if (!Array.isArray(childrenDecoded)) {
-        throw new Error("Children must be an array.");
-      }
-    } catch (error) {
-      console.error("Error parsing children:", error.message);
-      return res.status(400).json({ error: "Invalid children parameter" });
-    }
-
-    // Deep link to the mobile app
-    const deepLink = `myapp://signup?token=${token}&children=${encodeURIComponent(
-      JSON.stringify(childrenDecoded)
-    )}&name=${encodeURIComponent(name || "")}&role=${role}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
-
-    const fallbackUrl = `http://localhost:3000/api/auth/redirect?token=${token}&children=${encodeURIComponent(
-      JSON.stringify(childrenDecoded)
-    )}&name=${encodeURIComponent(name || "")}&role=${role}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone)}`;
-
-    res.setHeader("Content-Type", "text/html"); // Ensuring correct content type
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Redirecting...</title>
-          <script>
-            document.addEventListener("DOMContentLoaded", function() {
-              // Try opening the deep link
-              window.location.href = "${deepLink}";
-
-              // If the app is not installed, redirect to web signup after 3 seconds
-              setTimeout(() => {
-                window.location.href = "${fallbackUrl}";
-              }, 3000);
-            });
-          </script>
-        </head>
-        <body>
-          <p>Redirecting you to the app...</p>
-          <p>If you are not redirected, <a href="${fallbackUrl}">click here</a>.</p>
+    return res.send(`
+      <html>
+        <body style="font-family:sans-serif;padding:2rem;">
+          <h2>Test Deep Link</h2>
+          <p>Click the link below on a mobile device with the app installed:</p>
+          <a href="${deepLink}" style="font-size:18px;color:blue;">${deepLink}</a>
+          <br/><br/>
+          <p>Or copy & paste this deep link:</p>
+          <code style="background:#f5f5f5;padding:10px;display:block;">${deepLink}</code>
         </body>
       </html>
     `);
+
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
+const confirmInvitation = async (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({ success: false, message: "Token and password are required" });
+  }
+
+  try {
+    // 1. Find the invitation by token
+    const invitation = await Invitation.findOne({ token });
+    if (!invitation) {
+      return res.status(400).json({ success: false, message: "Invalid or expired invitation" });
+    }
+
+    if (invitation.status === "accepted") {
+      return res.status(400).json({ success: false, message: "This invitation has already been used." });
+    }
+
+    // 2. Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 3. Create a unique user ID
+    const randomNumber = Math.floor(Math.random() * 25000000);
+    const user_id = `PR-${randomNumber.toString().padStart(7, "0")}`;
+
+    // 4. Create a new user
+    const newUser = new User({
+      user_id,
+      name: invitation.name,
+      email: invitation.email,
+      phone: invitation.phone,
+      password: hashedPassword,
+      role: "parent",
+      student_ids: invitation.childrenIds, // You can add this to User schema
+    });
+
+    await newUser.save();
+
+    // 5. Update the invitation
+    invitation.status = "accepted";
+    await invitation.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Account created successfully. You can now log in.",
+    });
+  } catch (error) {
+    console.error("Error confirming invitation:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
 
 
-module.exports = { loginUser, forgotPassword,sendInvitation,redirectToApp ,getCode, verifyCode,verifyPassword};
+
+module.exports = { loginUser, forgotPassword, sendInvitation, redirectToApp, getCode, verifyCode, verifyPassword, confirmInvitation };
 
