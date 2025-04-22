@@ -30,7 +30,7 @@ async function initiatePay({
 
   const payload = {
     apikey: API_KEY,
-    site_id: SITE_ID,
+    site_id: "105892960",
     transaction_id,
     amount,
     currency: "XAF",
