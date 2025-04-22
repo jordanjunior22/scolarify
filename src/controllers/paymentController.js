@@ -4,111 +4,118 @@ const moment = require('moment'); // Moment.js for date handling
 const { ensureUniqueId } = require('../utils/generateId'); // Utility to generate unique IDs
 const Subscription = require('../models/Subscription');
 const User = require('../models/User');
+const cinetpay = require('../utils/cinetpay'); // Assuming you have a CinetPay utility for payment processing
 
-async function handleWebhook(req, res) {
+const handleWebhook = async (req, res) => {
   try {
-    // Get the transaction status from fapshi's API to be sure of its source
-    const event = await fapshi.paymentStatus(req.body.transId);
+    const { code, message, data } = req.body;
 
-    if (event.statusCode !== 200) {
-      return res.status(400).send({ message: event.message });
-    }
+    // Extract necessary fields from the `data` object
+    const { amount, currency, status, payment_date, operator_id, metadata,customer_email } = data;
 
-    console.log('Received webhook event:', event);
-    const { transId, email, amount, dateInitiated, userId,externalId } = event; 
-    const subscriptionId = await ensureUniqueId(Subscription, 'subscription_id', 'SUB');
-    const student_id = externalId.split("_");
-    // Handle the event based on the status
-    switch (event.status) {
-      case 'SUCCESSFUL':
-        // Calculate the expiry date for a yearly subscription
-        const expiryDate = moment(dateInitiated).add(1, 'year').toDate();
+    // Extract user ID (and other details) from metadata if available
+    const { userId, students_ids } = metadata ? JSON.parse(metadata) : {};
+
+    // Use a switch statement to handle different payment statuses
+    switch (status) {
+      case "ACCEPTED":
+        // Payment was successful
+        console.log(`Payment Accepted: ${operator_id}`);
+
+        // Calculate the subscription expiry date (e.g., 1 year from payment date)
+        const expiryDate = moment(payment_date).add(1, "year").toDate();
+
+        // Create or update subscription data
+        const subscriptionId = await ensureUniqueId(Subscription, 'subscription_id', 'SUB');
 
         const subscriptionData = {
-          transaction_id: transId,
-          email: email,
+          transaction_id: operator_id,
+          email: customer_email, // Replace with the actual email from metadata if available
           amount: amount,
+          currency: currency,
           expiryDate: expiryDate,
           status: true, // Mark as active
-          student_id:student_id,
+          student_ids: students_ids || [], // Use students_ids from metadata if available
           subscription_id: subscriptionId,
-          guardian_id: userId, // Assuming userId is the guardian (optional, depending on your model)
+          guardian_id: userId, // Assuming userId is the guardian (from metadata)
         };
 
-        // Check if subscription already exists with the same transaction_id
+        // Check if subscription already exists with the same user_id
         let subscription = await Subscription.findOne({ guardian_id: userId });
 
-        // If not, create a new subscription
+        // If no subscription exists, create a new one
         if (!subscription) {
           subscription = new Subscription(subscriptionData);
         } else {
-          // Update the existing subscription (if necessary)
+          // If subscription exists, update the details
           subscription.expiryDate = expiryDate;
-          subscription.transaction_id = transId,
-          subscription.student_id = student_id,
-          subscription.status = true; // Ensure the subscription is active
-          subscription.subscription_id = subscriptionId; // Ensure unique subscription_id is added
+          subscription.transaction_id = operator_id;
+          subscription.student_ids = students_ids || []; // Update student IDs
+          subscription.status = true; // Active subscription
+          subscription.subscription_id = subscriptionId; // Ensure unique subscription_id
         }
 
-        // Save the subscription
+        // Save the subscription to the database
         await subscription.save();
+        res.status(200).send({ message: "Subscription updated successfully." });
         break;
 
-      case 'FAILED':
-        // Mark subscription as inactive and log failure
-        console.log(`Payment failed for transaction ${transId}`);
+      case "REFUSED":
+        // Payment failed or transaction was canceled, mark the subscription as inactive
+        console.log(`Payment Failed or Transaction Canceled: ${operator_id}`);
+
         let failedSubscription = await Subscription.findOne({ guardian_id: userId });
 
         if (failedSubscription) {
-          subscription.transaction_id = transId,
-          failedSubscription.status = false; 
-          failedSubscription.expiryDate = null;
+          failedSubscription.transaction_id = operator_id;
+          failedSubscription.status = false; // Mark as inactive
+          failedSubscription.expiryDate = null; // Remove expiry date
           await failedSubscription.save();
         }
-        break;
-
-      case 'EXPIRED':
-        // Mark subscription as expired
-        console.log(`Payment expired for transaction ${transId}`);
-        let expiredSubscription = await Subscription.findOne({ guardian_id: userId });
-
-        if (expiredSubscription) {
-          subscription.transaction_id = transId,
-          expiredSubscription.status = false; 
-          expiredSubscription.expiryDate = null;
-          await expiredSubscription.save();
-        } 
+        res.status(200).send({ message: "Payment failed or transaction canceled. Subscription not activated." });
         break;
 
       default:
-        console.log(`Unhandled event status: ${event.status}`);
+        // Unhandled payment status
+        console.log(`Unhandled payment status: ${status}`);
+        res.status(400).send({ message: "Unhandled payment status." });
+        break;
     }
 
-    //Return a 200 response to acknowledge receipt of the event
-    res.send();
   } catch (error) {
-    console.error('Error handling webhook:', error);
-    res.status(500).send({ message: 'Internal Server Error' });
+    console.error("Error processing webhook:", error);
+    res.status(500).send({ message: "Internal Server Error", error: error.message });
   }
-}
+};
 
 const initiatePayment = async (req, res) => {
   try {
-    const { userId, amount, email, externalId } = req.body;
-
-    // Check if the user exists and has the role 'parent'
-    const user = await User.findById(userId);
-    if (!user || user.role !== 'parent') {
-      return res.status(403).json({ message: 'You do not have permission to initiate a payment.' });
+    const { userId, amount, email, students_ids, return_url } = req.body;
+    const notify_url = process.env.CINETPAY_WEBHOOK_URL || "https://scolarify.onrender.com/payment/webhook"; // Replace with your actual webhook URL
+    // Validate required fields
+    if (!userId || !amount || !email || !students_ids || !notify_url || !return_url) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Proceed with initiating the payment
-    const response = await fapshi.initiatePay({userId, amount, email, externalId });
+    // Call CinetPay's initiate payment function
+    const paymentResponse = await cinetpay.initiatePay({
+      userId,
+      amount,
+      email,
+      students_ids,
+      notify_url,
+      return_url
+    });
 
-    res.status(200).json(response);
+    // Return response with payment URL to redirect user for payment
+    res.status(200).json({
+      message: "Payment initiation successful",
+      payment_url: paymentResponse.payment_url,
+      transaction_id: paymentResponse.transaction_id
+    });
   } catch (error) {
-    console.error('Error handling payment:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error("Error initiating payment:", error);
+    res.status(500).json({ message: "Failed to initiate payment with CinetPay", error: error.message });
   }
 };
 
