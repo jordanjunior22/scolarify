@@ -1,5 +1,8 @@
 // utils/cinetpay.js
 const axios = require("axios");
+const dotenv = require('dotenv');
+// Load environment variables
+dotenv.config();
 
 const BASE_URL = "https://api-checkout.cinetpay.com/v2";
 const API_KEY = process.env.CINETPAY_API_KEY;
@@ -29,7 +32,7 @@ async function initiatePay({
   const transaction_id = `txn_${Date.now()}`;
 
   const payload = {
-    apikey: API_KEY,
+    apikey: "2929531236807a97f60d944.99385107",
     site_id: "105892960",
     transaction_id,
     amount,
