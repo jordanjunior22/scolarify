@@ -24,7 +24,7 @@ async function initiatePay({
   userId,
   amount,
   email,
-  students_ids,
+  students_ids_str,
   notify_url,
   return_url,
   channels = "ALL"
@@ -43,11 +43,8 @@ async function initiatePay({
     notify_url,
     return_url,
     channels,
-    metadata: {
-      userId,
-      students_ids,
-      note: "Bulk student payment"
-    }
+    customer_id: userId,
+    metadata: students_ids_str
   };
 
   try {

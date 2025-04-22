@@ -11,7 +11,7 @@ const handleWebhook = async (req, res) => {
     const { code, message, data } = req.body;
 
     // Extract necessary fields from the `data` object
-    const { amount, currency, status, payment_date, operator_id, metadata,customer_email } = data;
+    const { amount, currency, status, payment_date, operator_id, metadata, customer_email } = data;
 
     // Extract user ID (and other details) from metadata if available
     const { userId, students_ids } = metadata ? JSON.parse(metadata) : {};
@@ -97,12 +97,14 @@ const initiatePayment = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+    const students_ids_str = students_ids.join('_');
+
     // Call CinetPay's initiate payment function
     const paymentResponse = await cinetpay.initiatePay({
       userId,
       amount,
       email,
-      students_ids,
+      students_ids_str,
       notify_url,
       return_url
     });
@@ -130,4 +132,4 @@ const checkPaymentStatus = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
-module.exports = { handleWebhook,initiatePayment, checkPaymentStatus};
+module.exports = { handleWebhook, initiatePayment, checkPaymentStatus };
