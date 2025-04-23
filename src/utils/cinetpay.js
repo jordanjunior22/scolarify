@@ -34,6 +34,7 @@ async function initiatePay({
   const payload = {
     apikey: "2929531236807a97f60d944.99385107",
     site_id: "105892960",
+    mode: "DEVELPMENT",
     transaction_id,
     amount,
     currency: "XAF",
