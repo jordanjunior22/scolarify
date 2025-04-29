@@ -9,15 +9,15 @@ const User = require('../models/User');
 async function handleWebhook(req, res) {
   try {
     // Get the transaction status from fapshi's API to be sure of its source
-    // const event = await fapshi.paymentStatus(req.body.transId);
+    const event = await fapshi.paymentStatus(req.body.transId);
 
-    // console.log('Webhook event:', event); // Log the event for debugging
+    console.log('Webhook event:', event); // Log the event for debugging
 
     // if (event.statusCode !== 200) {
     //   return res.status(400).send({ message: event.message });
     // }
 
-    const { transId, status, email, amount, dateInitiated, userId,externalId } = req.body;
+    const { transId, status, email, amount, dateInitiated, userId,externalId } = event;
     const subscriptionId = await ensureUniqueId(Subscription, 'subscription_id', 'SUB');
     const student_id = externalId.split("_");
     // Handle the event based on the status
