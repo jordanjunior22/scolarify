@@ -423,10 +423,10 @@ const resendInvitation = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: existingInvitation.email,
-      subject: "Your Scolarify Invitation Has Been Resent",
+      subject: "Your Scholarify Invitation Has Been Resent",
       html: `
         <p>Hello ${existingInvitation.name || "Parent"},</p>
-        <p>Your invitation to join Scolarify has expired, but we've resent a new invitation for you.</p>
+        <p>Your invitation to join Scholarify has expired, but we've resent a new invitation for you.</p>
         <a href="${smartLink}" style="display:inline-block;padding:10px 20px;background-color:#0ab1d7;color:#fff;text-decoration:none;border-radius:5px;">Join Now</a>
         <p>If the button doesn't work, copy and paste this URL into your browser:</p>
         <p>${smartLink}</p>
@@ -448,5 +448,5 @@ const resendInvitation = async (req, res) => {
 
 
 
-module.exports = { loginUser, forgotPassword, sendInvitation, redirectToApp, getCode, verifyCode, verifyPassword, confirmInvitation,resendInvitation };
+module.exports = { loginUser, forgotPassword, sendInvitation, redirectToApp, getCode, verifyCode, verifyPassword, confirmInvitation, resendInvitation};
 
