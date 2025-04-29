@@ -19,6 +19,8 @@ const InvitationSchema = new mongoose.Schema({
     default: "pending",
   },
   invitedAt: { type: Date, default: Date.now },
+  expiresAt: { type: Date, required: true }
+
 });
 
 const Invitation = mongoose.models.Invitation || mongoose.model('Invitation', InvitationSchema);

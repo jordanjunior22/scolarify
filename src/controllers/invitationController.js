@@ -1,10 +1,31 @@
 const Invitation = require('../models/Invitation');
+const { setInterval } = require("timers");
 
 // Test endpoint
 const testInvitationResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is the invitation controller' });
 };
 
+const expireInvitations = async () => {
+  try {
+    // Expire pending invitations
+    await Invitation.updateMany(
+      { expiresAt: { $lt: new Date() }, status: "pending" },
+      { status: "expired" }
+    );
+
+    // Expire accepted invitations after 30 days
+    await Invitation.updateMany(
+      { acceptedAt: { $lt: new Date(new Date().setDate(new Date().getDate() - 30)) }, status: "accepted" },
+      { status: "expired" }
+    );
+
+    console.log("Expired invitations have been updated.");
+  } catch (error) {
+    console.error("Error expiring invitations:", error);
+  }
+};
+setInterval(expireInvitations, 86400000);
 // Get all invitations
 const getAllInvitations = async (req, res) => {
   try {

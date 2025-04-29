@@ -4,6 +4,7 @@ const cors = require('cors');
 const routes = require('./routes/index'); // Import routes
 const connectDB = require('./utils/connectDB');
 
+require('./jobs/cronJobs');
 import('./middleware/arcjetMiddleware.mjs')
   .then((module) => {
     // Access the default export which is the middleware function

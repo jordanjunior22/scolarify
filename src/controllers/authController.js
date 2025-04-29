@@ -236,6 +236,8 @@ const sendInvitation = async (req, res) => {
     const smartBaseUrl = "https://appurl.io/Zp2utUbj7g";
     const smartLink = `${smartBaseUrl}?token=${customToken}&children=${encodedChildren}&name=${nameEncoded}&role=${role}&email=${emailEncoded}&phone=${phoneEncoded}`;
     // Step 5: Save invitation to database
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
     const newInvitation = new Invitation({
       name,
       email,
@@ -244,6 +246,7 @@ const sendInvitation = async (req, res) => {
       school_ids: validSchoolIds,
       token: customToken,
       status: "pending",
+      expiresAt,
     });
 
     await newInvitation.save();
@@ -366,6 +369,84 @@ const confirmInvitation = async (req, res) => {
 };
 
 
+const resendInvitation = async (req, res) => {
+  const { email } = req.body;
 
-module.exports = { loginUser, forgotPassword, sendInvitation, redirectToApp, getCode, verifyCode, verifyPassword, confirmInvitation };
+  try {
+    // Step 1: Find existing invitation
+    const existingInvitation = await Invitation.findOne({ email });
+
+    if (!existingInvitation) {
+      return res.status(404).json({ success: false, message: "No previous invitation found" });
+    }
+
+    // Step 2: Check if invitation is expired
+    if (existingInvitation.expiresAt > new Date()) {
+      return res.status(400).json({ success: false, message: "Current invitation is still valid" });
+    }
+
+    // Step 3: Generate a new Firebase token and encode childrenIds
+    const firebaseUid = `parent_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const customToken = await admin.auth().createCustomToken(firebaseUid);
+
+    let validChildrenIds = [];
+    if (Array.isArray(existingInvitation.childrenIds)) {
+      validChildrenIds = existingInvitation.childrenIds.map(id => new mongoose.Types.ObjectId(id));
+    }
+
+    const encodedChildren = Buffer.from(JSON.stringify(validChildrenIds)).toString("base64");
+
+    // Step 4: Update the invitation with a new token and expiration time
+    const newExpiresAt = new Date();
+    newExpiresAt.setHours(newExpiresAt.getHours() + 24); // set expiration for 24 hours later
+
+    existingInvitation.token = customToken;
+    existingInvitation.status = "pending"; // Reset status to pending
+    existingInvitation.expiresAt = newExpiresAt;
+
+    // Save updated invitation
+    await existingInvitation.save();
+
+    // Step 5: Generate smart link for the new invitation
+    const smartBaseUrl = "https://appurl.io/Zp2utUbj7g";
+    const smartLink = `${smartBaseUrl}?token=${customToken}&children=${encodedChildren}&name=${encodeURIComponent(existingInvitation.name)}&role=parent&email=${encodeURIComponent(existingInvitation.email)}&phone=${encodeURIComponent(existingInvitation.phone)}`;
+
+    // Step 6: Send email with the new invitation link
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: existingInvitation.email,
+      subject: "Your Scolarify Invitation Has Been Resent",
+      html: `
+        <p>Hello ${existingInvitation.name || "Parent"},</p>
+        <p>Your invitation to join Scolarify has expired, but we've resent a new invitation for you.</p>
+        <a href="${smartLink}" style="display:inline-block;padding:10px 20px;background-color:#0ab1d7;color:#fff;text-decoration:none;border-radius:5px;">Join Now</a>
+        <p>If the button doesn't work, copy and paste this URL into your browser:</p>
+        <p>${smartLink}</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({
+      success: true,
+      message: "New invitation resent successfully.",
+    });
+  } catch (error) {
+    console.error("Error resending invitation:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+
+
+
+module.exports = { loginUser, forgotPassword, sendInvitation, redirectToApp, getCode, verifyCode, verifyPassword, confirmInvitation,resendInvitation };
 
