@@ -191,7 +191,7 @@ const forgotPassword = async (req, res) => {
 };
 
 const sendInvitation = async (req, res) => {
-  const { name, email, phone, childrenIds } = req.body;
+  const { name, email, phone, childrenIds, school_ids } = req.body;
 
   try {
     if (!email && !phone) {
@@ -217,10 +217,15 @@ const sendInvitation = async (req, res) => {
     const customToken = await admin.auth().createCustomToken(firebaseUid);
 
     let validChildrenIds = [];
-
     if (Array.isArray(childrenIds)) {
       validChildrenIds = childrenIds.map(id => new mongoose.Types.ObjectId(id));
     }
+
+    let validSchoolIds = [];
+    if (Array.isArray(school_ids)) {
+      validSchoolIds = school_ids.map(id => new mongoose.Types.ObjectId(id));
+    }
+
     const encodedChildren = Buffer.from(JSON.stringify(validChildrenIds)).toString("base64");
 
     const nameEncoded = encodeURIComponent(name || "");
@@ -236,6 +241,7 @@ const sendInvitation = async (req, res) => {
       email,
       phone,
       childrenIds: validChildrenIds,
+      school_ids: validSchoolIds,
       token: customToken,
       status: "pending",
     });
