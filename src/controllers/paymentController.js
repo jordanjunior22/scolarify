@@ -96,7 +96,7 @@ async function handleWebhook(req, res) {
 
 const initiatePayment = async (req, res) => {
   try {
-    const { userId, amount, email, externalId,redirectUrl,webhook } = req.body;
+    const { userId, amount, email, externalId,redirectUrl } = req.body;
     const objectId = new mongoose.Types.ObjectId(userId); // Use 'new' keyword
 
     // Check if the user exists and has the role 'parent'
@@ -106,7 +106,7 @@ const initiatePayment = async (req, res) => {
     }
 
     // Proceed with initiating the payment
-    const response = await fapshi.initiatePay({userId, amount, email, externalId, redirectUrl,webhook});
+    const response = await fapshi.initiatePay({userId, amount, email, externalId, redirectUrl});
 
     res.status(200).json(response);
   } catch (error) {
