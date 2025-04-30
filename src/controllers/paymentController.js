@@ -71,7 +71,7 @@ async function handleWebhook(req, res) {
 
       case 'EXPIRED':
         // Mark subscription as expired
-        console.log(`Payment expired for transaction ${transId}`);
+        //console.log(`Payment expired for transaction ${transId}`);
         let expiredSubscription = await Subscription.findOne({ guardian_id: userId });
 
         if (expiredSubscription) {
