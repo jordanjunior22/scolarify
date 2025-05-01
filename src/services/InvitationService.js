@@ -16,4 +16,4 @@ const expireInvitations = async () => {
   }
 };
 
-module.exports = { expireInvitations };
+module.exports = { expireInvitations }; 

@@ -397,8 +397,7 @@ const resendInvitation = async (req, res) => {
     const encodedChildren = Buffer.from(JSON.stringify(validChildrenIds)).toString("base64");
 
     // Step 4: Update the invitation with a new token and expiration time
-    const newExpiresAt = new Date();
-    newExpiresAt.setHours(newExpiresAt.getHours() + 24); // set expiration for 24 hours later
+    const newExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
     existingInvitation.token = customToken;
     existingInvitation.status = "pending"; // Reset status to pending

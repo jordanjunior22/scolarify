@@ -101,6 +101,7 @@ const initiatePayment = async (req, res) => {
 
     // Check if the user exists and has the role 'parent'
     const user = await User.findById(objectId);
+    
     if (!user || user.role !== 'parent') {
       return res.status(403).json({ message: 'You do not have permission to initiate a payment.' });
     }
