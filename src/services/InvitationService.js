@@ -15,5 +15,4 @@ const expireInvitations = async () => {
     console.error("Error expiring invitations:", error);
   }
 };
-
-module.exports = { expireInvitations }; 
+module.exports = { expireInvitations };  
