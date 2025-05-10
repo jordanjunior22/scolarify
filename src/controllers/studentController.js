@@ -15,6 +15,19 @@ const getAllStudents = async (req, res) => {
   }
 };
 
+const getStudentsBySchoolId = async (req, res) => {
+  const { schoolId } = req.query;
+  if (!schoolId) {
+    return res.status(400).json({ message: 'Missing schoolId in query' });
+  }
+
+  try {
+    const students = await Student.find({ school_id: schoolId });
+    res.json(students);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 // // Create a new student record
 const createStudent = async (req, res) => {
   try {
@@ -113,5 +126,6 @@ module.exports = {
   updateStudentById,
   deleteStudentById,
   deleteMultipleStudents,
-  getStudentsByClassAndSchool
+  getStudentsByClassAndSchool,
+  getStudentsBySchoolId
 };

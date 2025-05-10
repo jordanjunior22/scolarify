@@ -8,7 +8,7 @@ const router = express.Router();
 
 // GET /students to fetch all student records
 router.get('/get-students' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , studentController.getAllStudents);
-
+router.get('/get-students-by-school', studentController.getStudentsBySchoolId);
 // Get students by ID
 router.get('/get-student/:id' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , studentController.getStudentById);
 
