@@ -17,6 +17,9 @@ const classScheduleRoutes = require('./classScheduleRoutes')
 const examTypeRoutes = require('./examTypeRoutes')
 const classLevelRoutes = require('./classLevelRoute')
 const invitationRoutes = require('./InvitationRoutes')
+const academicYearRoutes = require('./academicYearRoutes')
+const schoolResourcesRoutes = require('./schoolResourcesRoutes') 
+const FeesRoutes = require('./FeesRoutes')
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -37,5 +40,10 @@ router.use('/schedule',classScheduleRoutes);
 router.use('/exam',examTypeRoutes);
 router.use('/class-level',classLevelRoutes);
 router.use('/invitation',invitationRoutes);
+router.use('/academic-years',academicYearRoutes);
+router.use('/school-resources',schoolResourcesRoutes);
+router.use('/fees',FeesRoutes)
+
+
 
 module.exports = router; 

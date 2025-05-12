@@ -7,6 +7,14 @@ const router = express.Router();
 // Test route
 router.get('/test', classLevelController.testClassLevel);
 
+router.get(
+    '/get-class-levels-by-school/:school_id',
+    authenticate,
+    checkSubscription,
+    authorize(['admin', 'super', 'teacher']),
+    classLevelController.getClassLevelsBySchoolId
+  );
+  
 // GET all class levels
 router.get(
     '/get-class-levels',

@@ -90,6 +90,27 @@ const deleteMultipleClassLevels = async (req, res) => {
   }
 };
 
+const getClassLevelsBySchoolId = async (req, res) => {
+  try {
+    const { school_id } = req.params; // Extract school_id from the request parameters
+
+    if (!school_id) {
+      return res.status(400).json({ message: 'School ID is required' });
+    }
+
+    // Find all class levels associated with the given school_id
+    const classLevels = await ClassLevel.find({ school_id })
+
+    if (classLevels.length === 0) {
+      return res.status(404).json({ message: 'No class levels found for this school' });
+    }
+
+    res.status(200).json(classLevels);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   testClassLevel,
   getAllClassLevels,
@@ -98,4 +119,5 @@ module.exports = {
   updateClassLevelById,
   deleteClassLevelById,
   deleteMultipleClassLevels,
+  getClassLevelsBySchoolId,
 };
