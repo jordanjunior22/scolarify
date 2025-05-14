@@ -59,12 +59,8 @@ const studentSchema = new mongoose.Schema({
     type: String,
   },
   date_of_birth: {
-    type: String,
-  },
-  dob: {
     type: Date,
   },
-
   // Guardian details
   guardian_name: {
     type: String,
