@@ -20,6 +20,7 @@ const invitationRoutes = require('./InvitationRoutes')
 const academicYearRoutes = require('./academicYearRoutes')
 const schoolResourcesRoutes = require('./schoolResourcesRoutes') 
 const FeesRoutes = require('./FeesRoutes')
+const FeePayment = require('./feePaymountRoutes')
 
 const router = express.Router();
 router.use('/user', userRoutes);
@@ -43,6 +44,7 @@ router.use('/invitation',invitationRoutes);
 router.use('/academic-years',academicYearRoutes);
 router.use('/school-resources',schoolResourcesRoutes);
 router.use('/fees',FeesRoutes)
+router.use('/fee-payment',FeePayment)
 
 
 
