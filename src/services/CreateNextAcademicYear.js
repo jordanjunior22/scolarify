@@ -1,54 +1,57 @@
-const mongoose = require('mongoose');
-const AcademicYear = require('../models/AcademicYear'); // Assuming your AcademicYear model is in 'models/AcademicYear'
+const AcademicYear = require('../models/AcademicYear')
 
-// Function to create the next academic year
 const createNextAcademicYear = async () => {
-  try {
-    // Find the most recent academic year
-    const lastAcademicYear = await AcademicYear.findOne().sort({ createdAt: -1 });
-
-    // If no academic year exists, we start with the first one (e.g., "2024/2025")
-    if (!lastAcademicYear) {
-      const newAcademicYear = new AcademicYear({
-        academic_year: "2024/2025", // Starting academic year
-        start_date: new Date("2024-09-01"), // Example start date
-        end_date: new Date("2025-06-30"), // Example end date
-      });
-
-      await newAcademicYear.save();
-      console.log('New academic year created:', newAcademicYear.academic_year);
-    } else {
-      // Determine the next academic year based on the last academic year
-      const currentYear = new Date().getFullYear();
-      const nextYear = currentYear + 1;
-      
-      // Format the next academic year as "2025/2026" from "2024/2025"
-      const nextAcademicYear = `${currentYear + 1}/${nextYear}`;
-      
-      // Check if the next academic year already exists
+    try {
+      const currentMonth = new Date().getMonth(); // 0 = January, 6 = July
+  
+      // Only proceed if current month is July (6)
+      if (currentMonth !== 6) {
+        console.log("Academic year generation is only allowed in July.");
+        return;
+      }
+  
+      const lastAcademicYear = await AcademicYear.findOne().sort({ createdAt: -1 });
+  
+      if (!lastAcademicYear) {
+        const newAcademicYear = new AcademicYear({
+          academic_year: "2024/2025",
+          start_date: new Date("2024-09-01"),
+          end_date: new Date("2025-06-30"),
+        });
+  
+        await newAcademicYear.save();
+        console.log("New academic year created:", newAcademicYear.academic_year);
+        return;
+      }
+  
+      const [startYearStr, endYearStr] = lastAcademicYear.academic_year.split('/');
+      const startYear = parseInt(startYearStr, 10);
+      const endYear = parseInt(endYearStr, 10);
+  
+      const newStartYear = startYear + 1;
+      const newEndYear = endYear + 1;
+      const nextAcademicYear = `${newStartYear}/${newEndYear}`;
+  
       const existingYear = await AcademicYear.findOne({ academic_year: nextAcademicYear });
       if (existingYear) {
-        console.log('Academic year already exists:', nextAcademicYear);
-        return; // Avoid creating a duplicate
+        console.log("Academic year already exists:", nextAcademicYear);
+        return;
       }
-
-      // Create new academic year
-      const newStartDate = new Date(`${nextYear}-09-01`);
-      const newEndDate = new Date(`${nextYear + 1}-06-30`);
-
+  
+      const newStartDate = new Date(`${newStartYear}-09-01`);
+      const newEndDate = new Date(`${newEndYear}-06-30`);
+  
       const academicYear = new AcademicYear({
         academic_year: nextAcademicYear,
         start_date: newStartDate,
         end_date: newEndDate,
       });
-
+  
       await academicYear.save();
-      console.log('New academic year created:', nextAcademicYear);
+      console.log("New academic year created:", nextAcademicYear);
+    } catch (error) {
+      console.error("Error creating new academic year:", error);
     }
-  } catch (error) {
-    console.error('Error creating new academic year:', error);
-  }
-};
-
-// Run the function when appropriate (for example, every day at midnight)
-createNextAcademicYear();
+  };
+  
+  module.exports = {createNextAcademicYear };  

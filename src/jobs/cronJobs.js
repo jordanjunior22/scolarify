@@ -19,7 +19,7 @@ cron.schedule('0 0 * * *', async () => {
 });
 
 // Run the function at midnight every day
-cron.schedule('0 0 * * *', () => {
+cron.schedule('0 0 * * *', async() => {
   console.log('Running cron job to check and create the next academic year...');
-  createNextAcademicYear();
+  await createNextAcademicYear();
 });
