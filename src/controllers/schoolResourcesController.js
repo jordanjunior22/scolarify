@@ -18,7 +18,7 @@ const getAllSchoolResources = async (req, res) => {
 // Get a single resource by ID
 const getSchoolResourceById = async (req, res) => {
   try {
-    const resource = await SchoolResource.findById(req.params.id).populate('school_id');
+    const resource = await SchoolResource.findById(req.params.id);
     if (!resource) return res.status(404).json({ message: 'Resource not found' });
     res.json(resource);
   } catch (err) {
