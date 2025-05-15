@@ -19,13 +19,11 @@ const createFeePayment = async (req, res) => {
         const body = req.body;
 
         // Generate transaction reference
-        const transactionRef = generateTransactionRef();
 
         if (body.paymentMode === 'installment' && Array.isArray(body.installments)) {
             // Assign a unique transactionRef to each installment (or you could use the same one)
             body.installments = body.installments.map(inst => ({
                 ...inst,
-                transactionRef,
             }));
         }
 
