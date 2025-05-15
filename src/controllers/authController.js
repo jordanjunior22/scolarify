@@ -139,10 +139,10 @@ const verifyCode = async (req, res) => {
     user.isVerified = true;
     await user.save();
 
-    return res.status(200).json({ message: "Account verification successful", success: true });
+    return res.status(200).json({ message: "Account verification successful", success: true, error: null });
   } catch (error) {
     console.error("Error verifying code:", error);
-    return res.status(500).json({ message: "Verification failed", error: error.message });
+    return res.status(500).json({ message: "Verification failed", error: error.message, success: false });
   }
 };
 
@@ -220,10 +220,10 @@ const forgotPassword = async (req, res) => {
     // Send the email
     await transporter.sendMail(mailOptions);
 
-    return res.status(200).json({ message: 'Password reset code sent successfully to your email' });
+    return res.status(200).json({ message: 'Password reset code sent successfully to your email', success: true, error: null });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Failed to send password reset email', error: error.message });
+    return res.status(500).json({ message: 'Failed to send password reset email', error: error.message, success: false });
   }
 };
 
@@ -532,11 +532,11 @@ const resendCode = async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-    return res.status(200).json({ message: "New verification code sent successfully" });
+    return res.status(200).json({ message: "New verification code sent successfully", success: true, error: null });
 
   } catch (error) {
     console.error("Error resending code:", error);
-    return res.status(500).json({ message: "Failed to resend code", error: error.message });
+    return res.status(500).json({ message: "Failed to resend code", error: error.message, success: false });
   }
 };
 
@@ -571,7 +571,7 @@ const resetPassword = async (req, res) => {
     // Update the user's password
     user.password = hashedPassword;
 
-    // Clear the temporary password fields
+    // Clear the verification code fields
     user.verificationCode = null;
     user.verificationCodeExpires = null;
 
