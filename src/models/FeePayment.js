@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
+// Installment sub-schema
 const installmentSchema = new Schema({
   amount: { type: Number, required: true },
   dueDate: { type: Date, required: true },
@@ -9,25 +10,13 @@ const installmentSchema = new Schema({
   transactionRef: { type: String },
 });
 
-// Middleware to auto-generate transactionRef and paidAt when marking installment as paid
-installmentSchema.pre('save', function (next) {
-  if (this.isModified('paid') && this.paid) {
-    if (!this.transactionRef) {
-      this.transactionRef = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    }
-    if (!this.paidAt) {
-      this.paidAt = new Date();
-    }
-  }
-  next();
-});
-
+// Main FeePayment schema
 const FeePaymentSchema = new Schema(
   {
     student_id: { type: Schema.Types.ObjectId, ref: "Student", required: true },
     school_id: { type: Schema.Types.ObjectId, ref: "School", required: true },
     class_id: { type: Schema.Types.ObjectId, ref: "Class", required: true },
-    academic_year: { type: String, required: true },
+    academic_year: { type: String, required: true }, // ✅ using string not academic_id anymore
 
     selectedFees: [{ type: Schema.Types.ObjectId, ref: "Fee" }],
     selectedResources: [{ type: Schema.Types.ObjectId, ref: "SchoolResource" }],
@@ -39,7 +28,6 @@ const FeePaymentSchema = new Schema(
     },
 
     totalAmount: { type: Number, required: true },
-
     installments: [installmentSchema],
 
     status: {
@@ -51,8 +39,21 @@ const FeePaymentSchema = new Schema(
   { timestamps: true }
 );
 
-// Automatically set payment status based on installments
+// ✅ Automatically handle transactionRef, paidAt, and payment status
 FeePaymentSchema.pre("save", function (next) {
+  // Add transactionRef and paidAt if paid = true
+  this.installments.forEach(inst => {
+    if (inst.paid) {
+      if (!inst.transactionRef) {
+        inst.transactionRef = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
+      }
+      if (!inst.paidAt) {
+        inst.paidAt = new Date();
+      }
+    }
+  });
+
+  // Update payment status based on paid installments
   if (this.paymentMode === "installment") {
     const total = this.installments.length;
     const paid = this.installments.filter(i => i.paid).length;
@@ -65,7 +66,6 @@ FeePaymentSchema.pre("save", function (next) {
       this.status = "paid";
     }
   } else {
-    // For full payment mode, check if any installment is paid
     const fullPaid = this.installments.find(i => i.paid);
     this.status = fullPaid ? "paid" : "pending";
   }
