@@ -139,7 +139,7 @@ const verifyCode = async (req, res) => {
     user.isVerified = true;
     await user.save();
 
-    return res.status(200).json({ message: "Account verification successful" });
+    return res.status(200).json({ message: "Account verification successful", success: true });
   } catch (error) {
     console.error("Error verifying code:", error);
     return res.status(500).json({ message: "Verification failed", error: error.message });
