@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 const User = require('../models/User');  // Assuming you have a User model
 const Invitation = require('../models/Invitation'); // Assuming you have an Invitation model
 const { ensureUniqueId } = require('../utils/generateId');
-const { auth, signInWithEmailAndPassword, sendPasswordResetEmail } = require('../utils/firebaseClient');
+const { auth, signInWithEmailAndPassword } = require('../utils/firebaseClient');
 const mongoose = require('mongoose');
 
 
@@ -174,16 +174,50 @@ const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
-    // Check if the user exists in your database (optional but recommended)
+    // Check if the user exists in your database
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Send a password reset email using Firebase Authentication
-    await sendPasswordResetEmail(auth, email);
+    // Generate a 6-digit temporary password
+    const tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
 
-    return res.status(200).json({ message: 'Password reset email sent successfully' });
+    // Set expiration time (1 hour from now)
+    const tempPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
+
+    // Save the temporary password and expiration time to the user record
+    user.temp_password = tempPassword;
+    user.temp_password_expires = tempPasswordExpires;
+    await user.save();
+
+    // Create email transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Configure email content
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Scholarify - Password Reset Code",
+      html: `
+        <h2>Password Reset</h2>
+        <p>You have requested to reset your password.</p>
+        <p>Your temporary verification code is: <strong>${tempPassword}</strong></p>
+        <p>This code will expire in 1 hour.</p>
+        <p>If you did not request this password reset, please ignore this email.</p>
+      `,
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ message: 'Password reset code sent successfully to your email' });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Failed to send password reset email', error: error.message });
@@ -447,5 +481,49 @@ const resendInvitation = async (req, res) => {
 
 
 
-module.exports = { loginUser, forgotPassword, sendInvitation, redirectToApp, getCode, verifyCode, verifyPassword, confirmInvitation, resendInvitation};
+const resetPassword = async (req, res) => {
+  const { email, code, newPassword } = req.body;
+
+  try {
+    // Validate input
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ message: 'Email, verification code, and new password are required' });
+    }
+
+    // Find the user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if temp_password exists and matches
+    if (!user.temp_password || user.temp_password !== code) {
+      return res.status(400).json({ message: 'Invalid verification code' });
+    }
+
+    // Check if the code has expired
+    if (!user.temp_password_expires || user.temp_password_expires < new Date()) {
+      return res.status(400).json({ message: 'Verification code has expired' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password
+    user.password = hashedPassword;
+
+    // Clear the temporary password fields
+    user.temp_password = null;
+    user.temp_password_expires = null;
+
+    await user.save();
+
+    return res.status(200).json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return res.status(500).json({ message: 'Failed to reset password', error: error.message });
+  }
+};
+
+module.exports = { loginUser, forgotPassword, resetPassword, sendInvitation, redirectToApp, getCode, verifyCode, verifyPassword, confirmInvitation, resendInvitation};
 
