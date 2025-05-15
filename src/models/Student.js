@@ -7,7 +7,6 @@ const studentSchema = new mongoose.Schema({
     unique: true,
   },
 
-  // Guardian info
   guardian_id: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -15,7 +14,6 @@ const studentSchema = new mongoose.Schema({
     },
   ],
 
-  // School/Class associations
   school_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "School",
@@ -27,120 +25,90 @@ const studentSchema = new mongoose.Schema({
     required: true,
   },
 
-  // Personal info
-  first_name: {
-    type: String,
-    required: true,
-  },
-  last_name: {
-    type: String,
-    required: true,
-  },
-  middle_name: {
-    type: String,
-  },
-  name: {
-    type: String, // This is computed automatically
-  },
-  gender: {
-    type: String,
-    enum: ["Male", "Female", "Other"],
-  },
-  nationality: {
-    type: String,
-  },
-  place_of_birth: {
-    type: String,
-  },
-  address: {
-    type: String,
-  },
-  phone: {
-    type: String,
-  },
-  date_of_birth: {
-    type: Date,
-  },
-  // Guardian details
-  guardian_name: {
-    type: String,
-  },
-  guardian_phone: {
-    type: String,
-  },
-  guardian_email: {
-    type: String,
-  },
+  first_name: { type: String, required: true },
+  last_name: { type: String, required: true },
+  middle_name: { type: String },
+  name: { type: String },
+  gender: { type: String, enum: ["Male", "Female", "Other"] },
+  nationality: { type: String },
+  place_of_birth: { type: String },
+  address: { type: String },
+  phone: { type: String },
+  date_of_birth: { type: Date },
+
+  guardian_name: { type: String },
+  guardian_phone: { type: String },
+  guardian_email: { type: String },
+  guardian_address: { type: String },
   guardian_relationship: {
     type: String,
     enum: [
-      "Mother",
-      "Father",
-      "Brother",
-      "Sister",
-      "Aunty",
-      "Uncle",
-      "Grand Mother",
-      "Grand Father",
-      "Other",
+      "Mother", "Father", "Brother", "Sister", "Aunty", "Uncle",
+      "Grand Mother", "Grand Father", "Other",
     ],
   },
-  guardian_occupation: {
-    type: String,
-  },
+  guardian_occupation: { type: String },
 
-  // Emergency contact
-  emergency_contact_name: {
-    type: String,
-  },
-  emergency_contact_phone: {
-    type: String,
-  },
+  emergency_contact_name: { type: String },
+  emergency_contact_phone: { type: String },
   emergency_contact_relationship: {
     type: String,
     enum: [
-      "Mother",
-      "Father",
-      "Brother",
-      "Sister",
-      "Aunty",
-      "Uncle",
-      "Grand Mother",
-      "Grand Father",
-      "Other",
+      "Mother", "Father", "Brother", "Sister", "Aunty", "Uncle",
+      "Grand Mother", "Grand Father", "Other",
     ],
   },
 
-  // Academic Info
-  previous_school: {
+  previous_school: { type: String },
+  transcript_reportcard: { type: Boolean, default: false },
+
+  health_condition: { type: String },
+  doctors_name: { type: String },
+  doctors_phone: { type: String },
+
+  selectedFees: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Fee",
+    },
+  ],
+  selectedResources: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SchoolResource",
+    },
+  ],
+  paymentMode: {
     type: String,
+    enum: ["full", "installment"],
+    default: "full",
   },
-  transcript_reportcard: {
+  installments: {
+    type: Number,
+    default: 1,
+  },
+  installmentDates: [
+    {
+      type: String,
+    },
+  ],
+  applyScholarship: {
     type: Boolean,
     default: false,
   },
-
-  // Medical Info
-  health_condition: {
-    type: String,
+  scholarshipAmount: {
+    type: Number,
+    default: 0,
   },
-  doctors_name: {
-    type: String,
+  scholarshipPercentage: {
+    type: Number,
+    default: 0,
   },
-  doctors_contact: {
-    type: String,
-  },
-  doctors_phone: {
-    type: String,
-  },
-
-  // Financials
   fees: {
     type: Number,
     default: 0,
   },
 
-  // Subjects
   non_compulsory_sbj: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -148,7 +116,6 @@ const studentSchema = new mongoose.Schema({
     },
   ],
 
-  // Enrollment status
   enrollement_date: {
     type: Date,
     default: Date.now,
@@ -159,18 +126,41 @@ const studentSchema = new mongoose.Schema({
     default: "not enrolled",
   },
 
-  // Meta/Consent
   guardian_agreed_to_terms: {
     type: Boolean,
     default: false,
   },
-
 }, { timestamps: true });
 
-// Auto-generate `name` before saving
-studentSchema.pre("save", function (next) {
+// Auto-generate name
+studentSchema.pre("save", async function (next) {
   this.name = `${this.first_name} ${this.last_name}`;
-  next();
+
+  try {
+    // Populate fees and resources
+    const Fee = mongoose.model("Fee");
+    const Resource = mongoose.model("SchoolResource");
+
+    const fees = await Fee.find({ _id: { $in: this.selectedFees } });
+    const resources = await Resource.find({ _id: { $in: this.selectedResources } });
+
+    // Sum amounts
+    const feeTotal = fees.reduce((sum, fee) => sum + (fee.amount || 0), 0);
+    const resourceTotal = resources.reduce((sum, res) => sum + (res.amount || 0), 0);
+
+    let total = feeTotal + resourceTotal;
+
+    // Apply scholarshipPercentage if applicable
+    if (this.applyScholarship && this.scholarshipPercentage > 0) {
+      const discount = (this.scholarshipPercentage / 100) * total;
+      total -= discount;
+    }
+
+    this.fees = total;
+    next();
+  } catch (err) {
+    return next(err);
+  }
 });
 
 const Student = mongoose.models.Student || mongoose.model("Student", studentSchema);
