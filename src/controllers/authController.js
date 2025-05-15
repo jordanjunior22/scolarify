@@ -555,27 +555,41 @@ const resetPassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found', success: false, error: 'User not found' });
     }
 
-    // Check if verificationCode exists and matches
-    if (!user.verificationCode || user.verificationCode !== code) {
+    // Check if temp_password exists and matches
+    if (!user.temp_password || user.temp_password !== code) {
       return res.status(400).json({ message: 'Invalid verification code', success: false, error: 'Invalid verification code' });
     }
 
     // Check if the code has expired
-    if (!user.verificationCodeExpires || user.verificationCodeExpires < new Date()) {
+    if (!user.temp_password_expires || user.temp_password_expires < new Date()) {
       return res.status(400).json({ message: 'Verification code has expired', success: false, error: 'Verification code has expired' });
     }
 
-    // Hash the new password
+    // Hash the new password for MongoDB
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update the user's password
+    // Update the user's password in MongoDB
     user.password = hashedPassword;
 
-    // Clear the verification code fields
-    user.verificationCode = null;
-    user.verificationCodeExpires = null;
+    // Clear the temporary password fields
+    user.temp_password = null;
+    user.temp_password_expires = null;
 
     await user.save();
+
+    // Update the password in Firebase if the user has a firebaseUid
+    if (user.firebaseUid) {
+      try {
+        // Update the password in Firebase
+        await admin.auth().updateUser(user.firebaseUid, {
+          password: newPassword
+        });
+      } catch (firebaseError) {
+        console.error('Error updating Firebase password:', firebaseError);
+        // Continue with the process even if Firebase update fails
+        // We'll return success since the MongoDB password was updated
+      }
+    }
 
     return res.status(200).json({ message: 'Password has been reset successfully', success: true, error: null });
   } catch (error) {
