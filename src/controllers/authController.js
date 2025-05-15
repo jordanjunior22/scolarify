@@ -546,23 +546,23 @@ const resetPassword = async (req, res) => {
   try {
     // Validate input
     if (!email || !code || !newPassword) {
-      return res.status(400).json({ message: 'Email, verification code, and new password are required' });
+      return res.status(400).json({ message: 'Email, verification code, and new password are required', success: false, error: 'Bad request' });
     }
 
     // Find the user
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User not found', success: false, error: 'User not found' });
     }
 
     // Check if verificationCode exists and matches
     if (!user.verificationCode || user.verificationCode !== code) {
-      return res.status(400).json({ message: 'Invalid verification code' });
+      return res.status(400).json({ message: 'Invalid verification code', success: false, error: 'Invalid verification code' });
     }
 
     // Check if the code has expired
     if (!user.verificationCodeExpires || user.verificationCodeExpires < new Date()) {
-      return res.status(400).json({ message: 'Verification code has expired' });
+      return res.status(400).json({ message: 'Verification code has expired', success: false, error: 'Verification code has expired' });
     }
 
     // Hash the new password
@@ -577,10 +577,10 @@ const resetPassword = async (req, res) => {
 
     await user.save();
 
-    return res.status(200).json({ message: 'Password has been reset successfully' });
+    return res.status(200).json({ message: 'Password has been reset successfully', success: true, error: null });
   } catch (error) {
     console.error('Error resetting password:', error);
-    return res.status(500).json({ message: 'Failed to reset password', error: error.message });
+    return res.status(500).json({ message: 'Failed to reset password', error: error.message, success: false });
   }
 };
 
