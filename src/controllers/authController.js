@@ -555,13 +555,13 @@ const resetPassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found', success: false, error: 'User not found' });
     }
 
-    // Check if temp_password exists and matches
-    if (!user.temp_password || user.temp_password !== code) {
+    // Check if verificationCode exists and matches
+    if (!user.verificationCode || user.verificationCode !== code) {
       return res.status(400).json({ message: 'Invalid verification code', success: false, error: 'Invalid verification code' });
     }
 
     // Check if the code has expired
-    if (!user.temp_password_expires || user.temp_password_expires < new Date()) {
+    if (!user.verificationCodeExpires || user.verificationCodeExpires < new Date()) {
       return res.status(400).json({ message: 'Verification code has expired', success: false, error: 'Verification code has expired' });
     }
 
@@ -572,8 +572,8 @@ const resetPassword = async (req, res) => {
     user.password = hashedPassword;
 
     // Clear the temporary password fields
-    user.temp_password = null;
-    user.temp_password_expires = null;
+    user.verificationCode = null;
+    user.verificationCodeExpires = null;
 
     await user.save();
 
