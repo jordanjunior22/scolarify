@@ -8,6 +8,7 @@ const router = express.Router();
 router.post('/login', authController.loginUser);       // POST /api/auth/login
 router.post('/forgot-password', authController.forgotPassword); // POST /api/auth/forgot-password
 router.post('/reset-password', authController.resetPassword); // POST /api/auth/reset-password
+router.post('/resend-code', authController.resendCode); // POST /api/auth/resend-code
 router.post('/invite-parent',authController.sendInvitation)
 router.post('/resend-invite-parent',authController.resendInvitation)
 router.get('/redirect',authController.redirectToApp)

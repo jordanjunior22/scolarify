@@ -112,34 +112,37 @@ const getCode = async (req, res) => {
 };
 
 const verifyCode = async (req, res) => {
-  const { email, phone, verificationCode } = req.body;
+  const { email, phone, code } = req.body;
 
   try {
-    const user = await User.findOne(email ? { email } : { phone });
+    // Validate input
+    if ((!email && !phone) || !code) {
+      return res.status(400).json({ message: "Email or phone and verification code are required" });
+    }
 
+    // Find the user
+    const user = await User.findOne(email ? { email } : { phone });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the verification code matches and is not expired
-    if (user.verificationCode !== verificationCode) {
+    // Account verification logic
+    if (user.verificationCode !== code) {
       return res.status(400).json({ message: "Invalid verification code" });
     }
 
     if (user.verificationCodeExpires < new Date()) {
-      return res.status(400).json({ message: "Verification code expired" });
+      return res.status(400).json({ message: "Verification code expired. Resend code" });
     }
 
     // Mark the user as verified
     user.isVerified = true;
-    user.verificationCode = null; // Remove the code after verification
-    user.verificationCodeExpires = null;
     await user.save();
 
-    return res.status(200).json({ message: "Verification successful" });
+    return res.status(200).json({ message: "Account verification successful" });
   } catch (error) {
     console.error("Error verifying code:", error);
-    return res.status(500).json({ message: "Verification failed" });
+    return res.status(500).json({ message: "Verification failed", error: error.message });
   }
 };
 
@@ -180,15 +183,15 @@ const forgotPassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Generate a 6-digit temporary password
-    const tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate a 6-digit verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Set expiration time (1 hour from now)
-    const tempPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
+    const verificationCodeExpires = new Date(Date.now() + 60 * 60 * 1000);
 
-    // Save the temporary password and expiration time to the user record
-    user.temp_password = tempPassword;
-    user.temp_password_expires = tempPasswordExpires;
+    // Save the verification code and expiration time to the user record
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpires = verificationCodeExpires;
     await user.save();
 
     // Create email transporter
@@ -208,7 +211,7 @@ const forgotPassword = async (req, res) => {
       html: `
         <h2>Password Reset</h2>
         <p>You have requested to reset your password.</p>
-        <p>Your temporary verification code is: <strong>${tempPassword}</strong></p>
+        <p>Your temporary verification code is: <strong>${verificationCode}</strong></p>
         <p>This code will expire in 1 hour.</p>
         <p>If you did not request this password reset, please ignore this email.</p>
       `,
@@ -481,6 +484,62 @@ const resendInvitation = async (req, res) => {
 
 
 
+const resendCode = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Validate input
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Find the user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate a new 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Set expiration time (1 hour from now)
+    const expirationTime = new Date(Date.now() + 60 * 60 * 1000);
+
+    // Create email transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Update user with the new verification code
+    user.verificationCode = code;
+    user.verificationCodeExpires = expirationTime;
+    await user.save();
+
+    // Send the email with the verification code
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Scholarify - New Account Verification Code",
+      html: `
+        <h2>Account Verification</h2>
+          <p>Your new verification code is: <strong>${code}</strong></p>
+          <p>This code will expire in 1 hour.</p>
+        `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    return res.status(200).json({ message: "New verification code sent successfully" });
+
+  } catch (error) {
+    console.error("Error resending code:", error);
+    return res.status(500).json({ message: "Failed to resend code", error: error.message });
+  }
+};
+
 const resetPassword = async (req, res) => {
   const { email, code, newPassword } = req.body;
 
@@ -496,13 +555,13 @@ const resetPassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if temp_password exists and matches
-    if (!user.temp_password || user.temp_password !== code) {
+    // Check if verificationCode exists and matches
+    if (!user.verificationCode || user.verificationCode !== code) {
       return res.status(400).json({ message: 'Invalid verification code' });
     }
 
     // Check if the code has expired
-    if (!user.temp_password_expires || user.temp_password_expires < new Date()) {
+    if (!user.verificationCodeExpires || user.verificationCodeExpires < new Date()) {
       return res.status(400).json({ message: 'Verification code has expired' });
     }
 
@@ -513,8 +572,8 @@ const resetPassword = async (req, res) => {
     user.password = hashedPassword;
 
     // Clear the temporary password fields
-    user.temp_password = null;
-    user.temp_password_expires = null;
+    user.verificationCode = null;
+    user.verificationCodeExpires = null;
 
     await user.save();
 
@@ -525,5 +584,5 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, forgotPassword, resetPassword, sendInvitation, redirectToApp, getCode, verifyCode, verifyPassword, confirmInvitation, resendInvitation};
+module.exports = { loginUser, forgotPassword, resetPassword, resendCode, sendInvitation, redirectToApp, getCode, verifyCode, verifyPassword, confirmInvitation, resendInvitation };
 
