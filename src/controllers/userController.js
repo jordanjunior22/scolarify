@@ -209,6 +209,29 @@ const deleteMultipleUsers = async (req, res) => {
   }
 };
 
+// Search users by name, email, or phone
+const searchUsers = async (req, res) => {
+  const { query } = req.query;
+
+  if (!query) {
+    return res.status(400).json({ message: "Search query is required" });
+  }
+
+  try {
+    const users = await User.find({
+      $or: [
+        { name: { $regex: query, $options: "i" } },  // case-insensitive
+        { email: { $regex: query, $options: "i" } },
+        { phone: { $regex: query, $options: "i" } }
+      ]
+    });
+
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
     getAllUsers,
     createUser,
@@ -220,4 +243,5 @@ module.exports = {
     registerUser,
     getUserByEmail,
     getUserBy_id,
+    searchUsers,
  };

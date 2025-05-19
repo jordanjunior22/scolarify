@@ -3,11 +3,12 @@ const express = require('express');
 const userController = require('../controllers/userController');
 const { authenticate, authorize, checkSubscription } = require('../middleware/middleware');
 // 
-const router = express.Router();
+const router = express.Router(); 
 router.post('/register-user', authenticate, authorize(['admin', 'super']), userController.registerUser);
 
 // GET /users to fetch all users
 router.get('/get-users', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']), userController.getAllUsers);
+router.get('/search-users', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']), userController.searchUsers);
 
 // Route to get user by user_id
 router.get('/get-user/:id', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']), userController.getUserById);
