@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 const User = require('../models/User');  // Assuming you have a User model
 const Invitation = require('../models/Invitation'); // Assuming you have an Invitation model
 const { ensureUniqueId } = require('../utils/generateId');
-const { auth, signInWithEmailAndPassword, sendPasswordResetEmail } = require('../utils/firebaseClient');
+const { auth, signInWithEmailAndPassword } = require('../utils/firebaseClient');
 const mongoose = require('mongoose');
 
 
@@ -112,34 +112,37 @@ const getCode = async (req, res) => {
 };
 
 const verifyCode = async (req, res) => {
-  const { email, phone, verificationCode } = req.body;
+  const { email, phone, code } = req.body;
 
   try {
-    const user = await User.findOne(email ? { email } : { phone });
+    // Validate input
+    if ((!email && !phone) || !code) {
+      return res.status(400).json({ message: "Email or phone and verification code are required" });
+    }
 
+    // Find the user
+    const user = await User.findOne(email ? { email } : { phone });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the verification code matches and is not expired
-    if (user.verificationCode !== verificationCode) {
+    // Account verification logic
+    if (user.verificationCode !== code) {
       return res.status(400).json({ message: "Invalid verification code" });
     }
 
     if (user.verificationCodeExpires < new Date()) {
-      return res.status(400).json({ message: "Verification code expired" });
+      return res.status(400).json({ message: "Verification code expired. Resend code" });
     }
 
     // Mark the user as verified
     user.isVerified = true;
-    user.verificationCode = null; // Remove the code after verification
-    user.verificationCodeExpires = null;
     await user.save();
 
-    return res.status(200).json({ message: "Verification successful" });
+    return res.status(200).json({ message: "Account verification successful", success: true, error: null });
   } catch (error) {
     console.error("Error verifying code:", error);
-    return res.status(500).json({ message: "Verification failed" });
+    return res.status(500).json({ message: "Verification failed", error: error.message, success: false });
   }
 };
 
@@ -174,19 +177,53 @@ const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
-    // Check if the user exists in your database (optional but recommended)
+    // Check if the user exists in your database
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Send a password reset email using Firebase Authentication
-    await sendPasswordResetEmail(auth, email);
+    // Generate a 6-digit verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    return res.status(200).json({ message: 'Password reset email sent successfully' });
+    // Set expiration time (1 hour from now)
+    const verificationCodeExpires = new Date(Date.now() + 60 * 60 * 1000);
+
+    // Save the verification code and expiration time to the user record
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpires = verificationCodeExpires;
+    await user.save();
+
+    // Create email transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Configure email content
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Scholarify - Password Reset Code",
+      html: `
+        <h2>Password Reset</h2>
+        <p>You have requested to reset your password.</p>
+        <p>Your temporary verification code is: <strong>${verificationCode}</strong></p>
+        <p>This code will expire in 1 hour.</p>
+        <p>If you did not request this password reset, please ignore this email.</p>
+      `,
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ message: 'Password reset code sent successfully to your email', success: true, error: null });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Failed to send password reset email', error: error.message });
+    return res.status(500).json({ message: 'Failed to send password reset email', error: error.message, success: false });
   }
 };
 
@@ -447,5 +484,119 @@ const resendInvitation = async (req, res) => {
 
 
 
-module.exports = { loginUser, forgotPassword, sendInvitation, redirectToApp, getCode, verifyCode, verifyPassword, confirmInvitation, resendInvitation};
+const resendCode = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Validate input
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Find the user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate a new 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Set expiration time (1 hour from now)
+    const expirationTime = new Date(Date.now() + 60 * 60 * 1000);
+
+    // Create email transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Update user with the new verification code
+    user.verificationCode = code;
+    user.verificationCodeExpires = expirationTime;
+    await user.save();
+
+    // Send the email with the verification code
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Scholarify - New Account Verification Code",
+      html: `
+        <h2>Account Verification</h2>
+          <p>Your new verification code is: <strong>${code}</strong></p>
+          <p>This code will expire in 1 hour.</p>
+        `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    return res.status(200).json({ message: "New verification code sent successfully", success: true, error: null });
+
+  } catch (error) {
+    console.error("Error resending code:", error);
+    return res.status(500).json({ message: "Failed to resend code", error: error.message, success: false });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  const { email, code, newPassword } = req.body;
+
+  try {
+    // Validate input
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ message: 'Email, verification code, and new password are required', success: false, error: 'Bad request' });
+    }
+
+    // Find the user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found', success: false, error: 'User not found' });
+    }
+
+    // Check if verificationCode exists and matches
+    if (!user.verificationCode || user.verificationCode !== code) {
+      return res.status(400).json({ message: 'Invalid verification code', success: false, error: 'Invalid verification code' });
+    }
+
+    // Check if the code has expired
+    if (!user.verificationCodeExpires || user.verificationCodeExpires < new Date()) {
+      return res.status(400).json({ message: 'Verification code has expired', success: false, error: 'Verification code has expired' });
+    }
+
+    // Hash the new password for MongoDB
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password in MongoDB
+    user.password = hashedPassword;
+
+    // Clear the temporary password fields
+    user.verificationCode = null;
+    user.verificationCodeExpires = null;
+
+    await user.save();
+
+    // Update the password in Firebase if the user has a firebaseUid
+    if (user.firebaseUid) {
+      try {
+        // Update the password in Firebase
+        await admin.auth().updateUser(user.firebaseUid, {
+          password: newPassword
+        });
+      } catch (firebaseError) {
+        console.error('Error updating Firebase password:', firebaseError);
+        // Continue with the process even if Firebase update fails
+        // We'll return success since the MongoDB password was updated
+      }
+    }
+
+    return res.status(200).json({ message: 'Password has been reset successfully', success: true, error: null });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return res.status(500).json({ message: 'Failed to reset password', error: error.message, success: false });
+  }
+};
+
+module.exports = { loginUser, forgotPassword, resetPassword, resendCode, sendInvitation, redirectToApp, getCode, verifyCode, verifyPassword, confirmInvitation, resendInvitation };
 

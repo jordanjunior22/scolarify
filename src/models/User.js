@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       required: function () {
         return this.role !== "parent"; // Only required if the role is not "parent"
-      }, 
+      },
     },
     name: {
       type: String,
@@ -57,7 +57,7 @@ const userSchema = new mongoose.Schema(
     student_ids: [
       {
         type: mongoose.Schema.Types.ObjectId, // Reference to the School model
-        ref: "Student", 
+        ref: "Student",
       },
     ],
     isVerified: {
@@ -75,6 +75,14 @@ const userSchema = new mongoose.Schema(
     lastLogin: {
       type: Date,
       default: null, // Initially null, will be updated on user login
+    },
+    temp_password: {
+      type: String,
+      required: false,
+    },
+    temp_password_expires: {
+      type: Date,
+      required: false,
     },
   },
   {
