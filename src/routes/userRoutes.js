@@ -3,7 +3,7 @@ const express = require('express');
 const userController = require('../controllers/userController');
 const { authenticate, authorize, checkSubscription } = require('../middleware/middleware');
 // 
-const router = express.Router(); 
+const router = express.Router();
 router.post('/register-user', authenticate, authorize(['admin', 'super']), userController.registerUser);
 
 // GET /users to fetch all users

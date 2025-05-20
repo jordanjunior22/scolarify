@@ -189,7 +189,7 @@ const deleteUserById = async (req, res) => {
 };
 
 // Delete multiple user records by IDs
-const deleteMultipleUsers = async (req, res) => {
+const deleteMultipleUsers = async (req, res) => { 
   const { ids } = req.body; // Expecting an array of user IDs in the request body
   if (!Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
