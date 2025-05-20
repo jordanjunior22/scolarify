@@ -5,6 +5,8 @@ const { authenticate, authorize, checkSubscription } = require('../middleware/mi
 // 
 const router = express.Router();
 router.post('/register-user', authenticate, authorize(['admin', 'super']), userController.registerUser);
+router.post('/register-parent', authenticate, authorize(['admin', 'super']), userController.registerParent);
+
 
 // GET /users to fetch all users
 router.get('/get-users', authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']), userController.getAllUsers);

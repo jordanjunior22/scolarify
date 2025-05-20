@@ -2,6 +2,7 @@
 const firebase = require('../utils/firebase')
 const bcrypt = require('bcryptjs'); 
 const User = require('../models/User');  // Assuming you have a User model
+const crypto = require('crypto');
 
 const testUserResponse = (req, res) => {
     res.status(200).json({ message: 'Hi, this is user' });
@@ -232,9 +233,89 @@ const searchUsers = async (req, res) => {
   }
 };
 
+const generateRandomPassword = (length = 10) => {
+  return crypto.randomBytes(length).toString('hex').slice(0, length);
+};
+
+const registerParent = async (req, res) => {
+  const { name, phone, email, address, school_ids = [], student_ids = [] } = req.body;
+
+  try {
+    if ((!email && !phone) || !name) {
+      return res.status(400).json({ message: 'Name and either email or phone are required.' });
+    }
+
+    // Find existing user
+    const existingUser = await User.findOne({
+      $or: [
+        email ? { email } : null,
+        phone ? { phone } : null,
+      ].filter(Boolean),
+    });
+
+    if (existingUser) {
+      // Merge school_ids and student_ids (avoiding duplicates)
+      const updatedSchoolIds = Array.from(new Set([...existingUser.school_ids, ...school_ids]));
+      const updatedStudentIds = Array.from(new Set([...existingUser.student_ids, ...student_ids]));
+
+      existingUser.name = name; // optionally update name
+      existingUser.address = address || existingUser.address;
+      existingUser.school_ids = updatedSchoolIds;
+      existingUser.student_ids = updatedStudentIds;
+
+      await existingUser.save();
+
+      return res.status(200).json({
+        message: 'Existing parent updated with new schools or students',
+        user: existingUser,
+      });
+    }
+
+    // Generate password
+    const plainPassword = generateRandomPassword(10);
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+    // Create Firebase user
+    const firebaseUser = await firebase.auth().createUser({
+      email: email || undefined,
+      phoneNumber: phone || undefined,
+      password: plainPassword,
+    });
+
+    // Generate custom user ID
+    const randomNumber = Math.floor(Math.random() * 25000000);
+    const userId = `PR-${randomNumber.toString().padStart(7, '0')}`;
+
+    // Create and save new user
+    const user = new User({
+      user_id: userId,
+      firebaseUid: firebaseUser.uid,
+      name,
+      role: 'parent',
+      phone: phone || null,
+      email: email || null,
+      password: hashedPassword,
+      address: address || '',
+      school_ids,
+      student_ids,
+    });
+
+    await user.save();
+
+    return res.status(201).json({
+      message: 'Parent registered successfully',
+      user,
+      generatedPassword: plainPassword,
+    });
+  } catch (error) {
+    console.error('Register parent error:', error);
+    return res.status(500).json({ message: 'Failed to register parent', error: error.message });
+  }
+};
+
 module.exports = {
     getAllUsers,
-    createUser,
+    createUser, 
     getUserById,
     updateUserById,
     deleteUserById,
@@ -244,4 +325,5 @@ module.exports = {
     getUserByEmail,
     getUserBy_id,
     searchUsers,
+    registerParent,
  };
