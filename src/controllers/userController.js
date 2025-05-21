@@ -247,7 +247,11 @@ const registerParent = async (req, res) => {
     if ((!email && !phone) || !name) {
       return res.status(400).json({ message: 'Name and either email or phone are required.' });
     }
+    const isValidPhone = /^\+[1-9]\d{1,14}$/.test(phone);
 
+    if (phone && !isValidPhone) {
+      return res.status(400).json({ message: 'Invalid phone number format (must be in E.164 format)' });
+    }
     // Find existing user
     const existingUser = await User.findOne({
       $or: [
@@ -382,5 +386,5 @@ module.exports = {
   getUserByEmail,
   getUserBy_id,
   searchUsers,
-  registerParent, 
+  registerParent,
 };
