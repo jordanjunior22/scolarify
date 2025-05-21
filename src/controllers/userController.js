@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');  // Assuming you have a User model
 const Student = require('../models/Student'); // Assuming you have a Student model
 const crypto = require('crypto');
+const sendEmail = require('../utils/sendEmail');
+const sendSMS = require('../utils/sendSMS'); // Assuming you have a sendSMS utility
 
 const testUserResponse = (req, res) => {
   res.status(200).json({ message: 'Hi, this is user' });
@@ -326,6 +328,37 @@ const registerParent = async (req, res) => {
       })
     );
 
+    const message = `Welcome to Scholarify! Your login details:\nEmail/Phone: ${email || phone}\nPassword: ${plainPassword}`;
+
+    // Send SMS if phone exists
+    if (phone) {
+      try {
+        await sendSMS(phone, message);
+      } catch (err) {
+        console.error("Failed to send SMS:", err);
+      }
+    }
+
+    // Send Email if email exists
+    if (email) {
+      try {
+        await sendEmail({
+          to: email,
+          subject: 'Welcome to Scholarify',
+          html: `
+        <h2>Welcome to Scholarify!</h2>
+        <p>Your login credentials:</p>
+        <ul>
+          <li><strong>Email/Phone:</strong> ${email || phone}</li>
+          <li><strong>Password:</strong> ${plainPassword}</li>
+        </ul>
+        <p>Please log in and change your password after first use.</p>
+      `,
+        });
+      } catch (err) {
+        console.error("Failed to send email:", err);
+      }
+    }
     return res.status(201).json({
       message: 'Parent registered successfully',
       user,
@@ -349,5 +382,5 @@ module.exports = {
   getUserByEmail,
   getUserBy_id,
   searchUsers,
-  registerParent,
+  registerParent, 
 };
