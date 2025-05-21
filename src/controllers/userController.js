@@ -2,6 +2,7 @@
 const firebase = require('../utils/firebase')
 const bcrypt = require('bcryptjs'); 
 const User = require('../models/User');  // Assuming you have a User model
+const Student = require('../models/Student'); // Assuming you have a Student model
 const crypto = require('crypto');
 
 const testUserResponse = (req, res) => {
@@ -265,6 +266,17 @@ const registerParent = async (req, res) => {
 
       await existingUser.save();
 
+      // Also update students with this existing guardian
+      await Promise.all(
+        student_ids.map(async (studentId) => {
+          await Student.findByIdAndUpdate(
+            studentId,
+            { $addToSet: { guardian_id: existingUser._id } },
+            { new: true }
+          );
+        })
+      );
+
       return res.status(200).json({
         message: 'Existing parent updated with new schools or students',
         user: existingUser,
@@ -301,6 +313,17 @@ const registerParent = async (req, res) => {
     });
 
     await user.save();
+    
+    // 🔄 Update students to link the new parent
+    await Promise.all(
+      student_ids.map(async (studentId) => {
+        await Student.findByIdAndUpdate(
+          studentId,
+          { $addToSet: { guardian_id: user._id } }, // avoid duplicates
+          { new: true }
+        );
+      })
+    );
 
     return res.status(201).json({
       message: 'Parent registered successfully',
