@@ -29,7 +29,7 @@ const createFeePayment = async (req, res) => {
 
         const newPayment = new FeePayment({
             ...body,
-            transactionRef: body.paymentMode === 'full' ? transactionRef : undefined, // Optional top-level field
+            // transactionRef: body.paymentMode === 'full' ? transactionRef : undefined, // Optional top-level field
         });
 
         await newPayment.save();
