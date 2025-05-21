@@ -15,7 +15,7 @@ const FeePaymentSchema = new Schema(
   {
     student_id: { type: Schema.Types.ObjectId, ref: "Student", required: true },
     school_id: { type: Schema.Types.ObjectId, ref: "School", required: true },
-    class_id: { type: Schema.Types.ObjectId, ref: "Class", required: true },
+    class_level: { type: Schema.Types.ObjectId, ref: "ClassLevel", required: true },
     academic_year: { type: String, required: true }, // ✅ using string not academic_id anymore
 
     selectedFees: [{ type: Schema.Types.ObjectId, ref: "Fee" }],
