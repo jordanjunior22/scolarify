@@ -1,13 +1,13 @@
 // // controllers/userController.js
 const firebase = require('../utils/firebase')
-const bcrypt = require('bcryptjs'); 
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');  // Assuming you have a User model
 const Student = require('../models/Student'); // Assuming you have a Student model
 const crypto = require('crypto');
 
 const testUserResponse = (req, res) => {
-    res.status(200).json({ message: 'Hi, this is user' });
-  };
+  res.status(200).json({ message: 'Hi, this is user' });
+};
 // // Get all users
 const getAllUsers = async (req, res) => {
   try {
@@ -20,7 +20,7 @@ const getAllUsers = async (req, res) => {
 
 const registerUser = async (req, res) => {
   const { email, password, role, name, address, school_ids, phone } = req.body;
-  
+
   try {
     // Validate that the required fields are provided
     if (!email || !password || !name || !role) {
@@ -92,7 +92,7 @@ const createUser = async (req, res) => {
     res.status(201).json(newUser);
   } catch (err) {
     const customMessage = "Failed to create a new user.";
-    res.status(400).json({ customMessage,message: err.message });
+    res.status(400).json({ customMessage, message: err.message });
   }
 };
 
@@ -191,7 +191,7 @@ const deleteUserById = async (req, res) => {
 };
 
 // Delete multiple user records by IDs
-const deleteMultipleUsers = async (req, res) => { 
+const deleteMultipleUsers = async (req, res) => {
   const { ids } = req.body; // Expecting an array of user IDs in the request body
   if (!Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ message: 'Invalid input: ids should be a non-empty array' });
@@ -200,11 +200,11 @@ const deleteMultipleUsers = async (req, res) => {
   try {
     // Delete user records where _id is in the provided array of IDs
     const result = await User.deleteMany({ _id: { $in: ids } });
-    
+
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: 'No user records found for the provided IDs' });
     }
-    
+
     res.json({ message: `${result.deletedCount} user records deleted successfully` });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -268,9 +268,9 @@ const registerParent = async (req, res) => {
 
       // Also update students with this existing guardian
       await Promise.all(
-        student_ids.map(async (studentId) => {
+        student_ids.map(async (_id) => {
           await Student.findByIdAndUpdate(
-            studentId,
+            _id,
             { $addToSet: { guardian_id: existingUser._id } },
             { new: true }
           );
@@ -289,10 +289,11 @@ const registerParent = async (req, res) => {
 
     // Create Firebase user
     const firebaseUser = await firebase.auth().createUser({
-      email: email || undefined,
-      phoneNumber: phone || undefined,
+      ...(email ? { email } : {}),
+      ...(phone ? { phoneNumber: phone } : {}),
       password: plainPassword,
     });
+
 
     // Generate custom user ID
     const randomNumber = Math.floor(Math.random() * 25000000);
@@ -313,12 +314,12 @@ const registerParent = async (req, res) => {
     });
 
     await user.save();
-    
+
     // 🔄 Update students to link the new parent
     await Promise.all(
-      student_ids.map(async (studentId) => {
+      student_ids.map(async (_id) => {
         await Student.findByIdAndUpdate(
-          studentId,
+          _id,
           { $addToSet: { guardian_id: user._id } }, // avoid duplicates
           { new: true }
         );
@@ -337,16 +338,16 @@ const registerParent = async (req, res) => {
 };
 
 module.exports = {
-    getAllUsers,
-    createUser, 
-    getUserById,
-    updateUserById,
-    deleteUserById,
-    deleteMultipleUsers, //the new function
-    testUserResponse,
-    registerUser,
-    getUserByEmail,
-    getUserBy_id,
-    searchUsers,
-    registerParent,
- };
+  getAllUsers,
+  createUser,
+  getUserById,
+  updateUserById,
+  deleteUserById,
+  deleteMultipleUsers, //the new function
+  testUserResponse,
+  registerUser,
+  getUserByEmail,
+  getUserBy_id,
+  searchUsers,
+  registerParent,
+};
