@@ -331,13 +331,13 @@ const registerParent = async (req, res) => {
     const message = `Welcome to Scholarify! Your login details:\nEmail/Phone: ${email || phone}\nPassword: ${plainPassword}`;
 
     // Send SMS if phone exists
-    if (phone) {
-      try {
-        await sendSMS(phone, message);
-      } catch (err) {
-        console.error("Failed to send SMS:", err);
-      }
-    }
+    // if (phone) {
+    //   try {
+    //     await sendSMS(phone, message);
+    //   } catch (err) {
+    //     console.error("Failed to send SMS:", err);
+    //   }
+    // }
 
     // Send Email if email exists
     if (email) {
