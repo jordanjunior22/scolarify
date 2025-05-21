@@ -65,7 +65,7 @@ FeePaymentSchema.pre("save", function (next) {
       this.status = "paid";
     }
   } else {
-    const fullPaid = this.installments.find(i => i.paid);
+    const fullPaid = this.installments.every(i => i.paid); // 🔥 FIXED
     this.status = fullPaid ? "paid" : "pending";
   }
 
