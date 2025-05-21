@@ -19,8 +19,8 @@ const FeePaymentSchema = new Schema(
     academic_year: { type: String, required: true }, // ✅ using string not academic_id anymore
     selectedFees: [{ type: Schema.Types.ObjectId, ref: "Fee" }],
     selectedResources: [{ type: Schema.Types.ObjectId, ref: "SchoolResource" }],
-
-    paymentMode: {
+ 
+    paymentMode: { 
       type: String,
       enum: ["full", "installment"],
       default: "full",

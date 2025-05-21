@@ -22,12 +22,10 @@ const studentSchema = new mongoose.Schema({
   class_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",
-    required: true,
   },
   class_level: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: "ClassLevel", 
-    required: true
   },
   first_name: { type: String, required: true },
   last_name: { type: String, required: true },
