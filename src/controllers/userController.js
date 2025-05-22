@@ -241,18 +241,23 @@ const generateRandomPassword = (length = 10) => {
 };
 
 const registerParent = async (req, res) => {
-  const { name, phone, email, address, school_ids = [], student_ids = [] } = req.body;
+  let { name, phone, email, address, school_ids = [], student_ids = [] } = req.body;
 
   try {
     if ((!email && !phone) || !name) {
       return res.status(400).json({ message: 'Name and either email or phone are required.' });
     }
-    const isValidPhone = /^\+[1-9]\d{1,14}$/.test(phone);
 
+    const isValidPhone = /^\+[1-9]\d{1,14}$/.test(phone);
     if (phone && !isValidPhone) {
       return res.status(400).json({ message: 'Invalid phone number format (must be in E.164 format)' });
     }
-    // Find existing user
+
+    // Ensure uniqueness and normalize IDs to strings
+    const uniqueSchoolIds = Array.from(new Set(school_ids.map(id => id.toString())));
+    const uniqueStudentIds = Array.from(new Set(student_ids.map(id => id.toString())));
+
+    // Check for existing user
     const existingUser = await User.findOne({
       $or: [
         email ? { email } : null,
@@ -261,20 +266,25 @@ const registerParent = async (req, res) => {
     });
 
     if (existingUser) {
-      // Merge school_ids and student_ids (avoiding duplicates)
-      const updatedSchoolIds = Array.from(new Set([...existingUser.school_ids, ...school_ids]));
-      const updatedStudentIds = Array.from(new Set([...existingUser.student_ids, ...student_ids]));
+      const updatedSchoolIds = Array.from(new Set([
+        ...existingUser.school_ids.map(id => id.toString()),
+        ...uniqueSchoolIds,
+      ]));
 
-      existingUser.name = name; // optionally update name
+      const updatedStudentIds = Array.from(new Set([
+        ...existingUser.student_ids.map(id => id.toString()),
+        ...uniqueStudentIds,
+      ]));
+
+      existingUser.name = name;
       existingUser.address = address || existingUser.address;
       existingUser.school_ids = updatedSchoolIds;
       existingUser.student_ids = updatedStudentIds;
 
       await existingUser.save();
 
-      // Also update students with this existing guardian
       await Promise.all(
-        student_ids.map(async (_id) => {
+        uniqueStudentIds.map(async (_id) => {
           await Student.findByIdAndUpdate(
             _id,
             { $addToSet: { guardian_id: existingUser._id } },
@@ -289,23 +299,19 @@ const registerParent = async (req, res) => {
       });
     }
 
-    // Generate password
+    // Create new parent
     const plainPassword = generateRandomPassword(10);
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-    // Create Firebase user
     const firebaseUser = await firebase.auth().createUser({
       ...(email ? { email } : {}),
       ...(phone ? { phoneNumber: phone } : {}),
       password: plainPassword,
     });
 
-
-    // Generate custom user ID
     const randomNumber = Math.floor(Math.random() * 25000000);
     const userId = `PR-${randomNumber.toString().padStart(7, '0')}`;
 
-    // Create and save new user
     const user = new User({
       user_id: userId,
       firebaseUid: firebaseUser.uid,
@@ -315,18 +321,17 @@ const registerParent = async (req, res) => {
       email: email || null,
       password: hashedPassword,
       address: address || '',
-      school_ids,
-      student_ids,
+      school_ids: uniqueSchoolIds,
+      student_ids: uniqueStudentIds,
     });
 
     await user.save();
 
-    // 🔄 Update students to link the new parent
     await Promise.all(
-      student_ids.map(async (_id) => {
+      uniqueStudentIds.map(async (_id) => {
         await Student.findByIdAndUpdate(
           _id,
-          { $addToSet: { guardian_id: user._id } }, // avoid duplicates
+          { $addToSet: { guardian_id: user._id } },
           { new: true }
         );
       })
@@ -334,45 +339,39 @@ const registerParent = async (req, res) => {
 
     const message = `Welcome to Scholarify! Your login details:\nEmail/Phone: ${email || phone}\nPassword: ${plainPassword}`;
 
-    // Send SMS if phone exists
-    // if (phone) {
-    //   try {
-    //     await sendSMS(phone, message);
-    //   } catch (err) {
-    //     console.error("Failed to send SMS:", err);
-    //   }
-    // }
-
-    // Send Email if email exists
+    // Send Email (optional: SMS block can be added back)
     if (email) {
       try {
         await sendEmail({
           to: email,
           subject: 'Welcome to Scholarify',
           html: `
-        <h2>Welcome to Scholarify!</h2>
-        <p>Your login credentials:</p>
-        <ul>
-          <li><strong>Email/Phone:</strong> ${email || phone}</li>
-          <li><strong>Password:</strong> ${plainPassword}</li>
-        </ul>
-        <p>Please log in and change your password after first use.</p>
-      `,
+            <h2>Welcome to Scholarify!</h2>
+            <p>Your login credentials:</p>
+            <ul>
+              <li><strong>Email/Phone:</strong> ${email || phone}</li>
+              <li><strong>Password:</strong> ${plainPassword}</li>
+            </ul>
+            <p>Please log in and change your password after first use.</p>
+          `,
         });
       } catch (err) {
         console.error("Failed to send email:", err);
       }
     }
+
     return res.status(201).json({
       message: 'Parent registered successfully',
       user,
       generatedPassword: plainPassword,
     });
+
   } catch (error) {
     console.error('Register parent error:', error);
     return res.status(500).json({ message: 'Failed to register parent', error: error.message });
   }
 };
+
 
 module.exports = {
   getAllUsers,
