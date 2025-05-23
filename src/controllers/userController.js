@@ -362,8 +362,8 @@ const registerParent = async (req, res) => {
 
     return res.status(201).json({
       message: 'Parent registered successfully',
-      user,
-      generatedPassword: plainPassword,
+      // user,
+      // generatedPassword: plainPassword,
     });
 
   } catch (error) {
