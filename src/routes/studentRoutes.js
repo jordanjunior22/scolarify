@@ -16,6 +16,8 @@ router.get("/class/:classId/school/:schoolId", studentController.getStudentsByCl
 // POST /students to create a new student record
 router.post('/create-student' , authenticate, authorize(['admin', 'super']) ,  studentController.createStudent);
 
+router.post('/import-cvs-students' , authenticate, authorize(['admin', 'super']) ,  studentController.importStudentsFromCSV);
+
 // PUT /students/:id to update a specific student record
 router.put('/update-student/:id' , authenticate, authorize(['admin', 'super']) , studentController.updateStudentById);
 

@@ -95,6 +95,8 @@ const deleteMultipleSubjects = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   testSubjectResponse,
   getAllSubjects,

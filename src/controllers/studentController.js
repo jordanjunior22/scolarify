@@ -31,8 +31,24 @@ const getStudentsBySchoolId = async (req, res) => {
 // // Create a new student record
 const createStudent = async (req, res) => {
   try {
+    const { first_name, last_name, date_of_birth, school_id } = req.body;
+
+    const existingStudent = await Student.findOne({
+      first_name: new RegExp(`^${first_name}$`, 'i'),
+      last_name: new RegExp(`^${last_name}$`, 'i'),
+      date_of_birth: new Date(date_of_birth),
+      school_id,
+    });
+
+    if (existingStudent) {
+      return res.status(409).json({
+        message: 'Student already exists with the same name and date of birth',
+        student_id: existingStudent.student_id,
+      });
+    }
+
     const StudentId = await ensureUniqueId(Student, 'student_id', 'STD');
-    const newStudent = new Student({student_id:StudentId,...req.body});
+    const newStudent = new Student({ student_id: StudentId, ...req.body });
     await newStudent.save();
     res.status(201).json(newStudent);
   } catch (err) {
@@ -40,7 +56,8 @@ const createStudent = async (req, res) => {
   }
 };
 
-const getStudentsByClassAndSchool = async (req, res) => {
+
+const getStudentsByClassAndSchool = async (req, res) => { 
   const { classId, schoolId } = req.params;
 
   try {
@@ -118,6 +135,57 @@ const deleteMultipleStudents = async (req, res) => {
   }
 };
 
+const importStudentsFromCSV = async (req, res) => {
+  const csv = require('csv-parser');
+  const fs = require('fs');
+  const Student = require('../models/Student');
+  const results = [];
+
+  fs.createReadStream(req.file.path)
+    .pipe(csv())
+    .on('data', (data) => results.push(data))
+    .on('end', async () => {
+      try {
+        const inserted = await Promise.all(
+          results.map(async (row) => {
+            const student = new Student({
+              student_id: row.student_id,
+              first_name: row.first_name,
+              last_name: row.last_name,
+              middle_name: row.middle_name || '',
+              gender: row.gender,
+              nationality: row.nationality,
+              date_of_birth: new Date(row.date_of_birth),
+              school_id: row.school_id,
+              class_id: row.class_id || null,
+              class_level: row.class_level || null,
+              address: row.address,
+              phone: row.phone,
+              guardian_name: row.guardian_name,
+              guardian_phone: row.guardian_phone,
+              guardian_relationship: row.guardian_relationship,
+              guardian_address: row.guardian_address,
+              status: row.status || 'not enrolled', // ✅ Use status from CSV
+            });
+
+            return await student.save();
+          })
+        );
+
+        fs.unlinkSync(req.file.path);
+        res.status(200).json({
+          message: 'Students imported successfully',
+          count: inserted.length,
+        });
+      } catch (error) {
+        res.status(500).json({
+          error: 'Error importing students',
+          details: error.message,
+        });
+      }
+    });
+};
+
 module.exports = {
   testStudentResponse,
   getAllStudents,
@@ -127,5 +195,6 @@ module.exports = {
   deleteStudentById,
   deleteMultipleStudents,
   getStudentsByClassAndSchool,
-  getStudentsBySchoolId
+  getStudentsBySchoolId,
+  importStudentsFromCSV,
 };
