@@ -28,7 +28,11 @@ const FeePaymentSchema = new Schema(
 
     totalAmount: { type: Number, required: true },
     installments: [installmentSchema],
-
+    receipt_number: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     status: {
       type: String,
       enum: ["pending", "partially_paid", "paid", "cancelled"],
@@ -40,6 +44,9 @@ const FeePaymentSchema = new Schema(
 
 // ✅ Automatically handle transactionRef, paidAt, and payment status
 FeePaymentSchema.pre("save", function (next) {
+    if (!this.receipt_number) {
+    this.receipt_number = `FEE-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  }
   // Add transactionRef and paidAt if paid = true
   this.installments.forEach(inst => {
     if (inst.paid) {
