@@ -143,50 +143,41 @@ const searchStudent = async (req, res) => {
       return res.status(400).json({ message: 'Missing required parameter: school_id' });
     }
 
-    const baseFilter = [{ school_id }];
+    // Step 1: Get all students from the school
+    const studentsFromSchool = await Student.find({ school_id });
+
+    if (!studentsFromSchool.length) {
+      return res.status(404).json({ message: 'No students found in this school.' });
+    }
+
+    // Step 2: Filter in-memory
+    let filteredStudents = studentsFromSchool;
 
     if (student_id) {
-      baseFilter.push({ student_id });
+      filteredStudents = filteredStudents.filter(student => student.student_id === student_id);
     }
 
     if (name) {
       const nameRegex = new RegExp(name.replace(/\s+/g, '.*'), 'i');
 
-      baseFilter.push({
-        $or: [
-          {
-            $expr: {
-              $regexMatch: {
-                input: { $concat: ['$first_name', ' ', '$last_name'] },
-                regex: nameRegex,
-              },
-            },
-          },
-          {
-            $expr: {
-              $regexMatch: {
-                input: { $concat: ['$last_name', ' ', '$first_name'] },
-                regex: nameRegex,
-              },
-            },
-          },
-        ],
+      filteredStudents = filteredStudents.filter(student => {
+        const fullName1 = `${student.first_name} ${student.last_name}`;
+        const fullName2 = `${student.last_name} ${student.first_name}`;
+        return nameRegex.test(fullName1) || nameRegex.test(fullName2);
       });
     }
 
-    const students = await Student.find({ $and: baseFilter });
-
-    if (!students.length) {
+    if (!filteredStudents.length) {
       return res.status(404).json({ message: 'No matching students found in this school.' });
     }
 
-    res.status(200).json(students);
+    // Step 3: Return results
+    res.status(200).json(filteredStudents);
   } catch (err) {
     console.error('Student search error:', err);
     res.status(500).json({ message: 'Error searching students.' });
   }
 };
-
 
 
 // Delete multiple student records by IDs
