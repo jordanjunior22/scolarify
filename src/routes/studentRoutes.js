@@ -6,6 +6,8 @@ const { authenticate, authorize, checkSubscription } = require('../middleware/mi
 const router = express.Router();
 // router.get('/test', studentController.testStudentResponse); // Updated route to match student
 
+router.get('/search-students', authenticate, checkSubscription, authorize(['admin', 'super', 'teacher', 'parent']), studentController.searchStudent);
+
 // GET /students to fetch all student records
 router.get('/get-students' , authenticate, checkSubscription, authorize(['admin', 'super', 'parent', 'teacher']) , studentController.getAllStudents);
 router.get('/get-students-by-school', studentController.getStudentsBySchoolId);

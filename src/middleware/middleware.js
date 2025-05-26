@@ -50,7 +50,6 @@ const authorize = (roles = []) => {
 };
 
 const checkSubscription = async (req, res, next) => {
-
   try {
     const user = await User.findOne({ firebaseUid: req.user.uid });
     
@@ -81,4 +80,4 @@ const checkSubscription = async (req, res, next) => {
     res.status(500).send({ message: 'Internal Server Error' });
   }
 }
-module.exports = { authenticate, authorize, checkSubscription }; 
+module.exports = { authenticate, authorize, checkSubscription };
