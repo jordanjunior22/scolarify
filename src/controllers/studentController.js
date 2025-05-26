@@ -139,28 +139,42 @@ const searchStudent = async (req, res) => {
   try {
     const { student_id, name, school_id } = req.query;
 
-    // Require school_id for security
     if (!school_id) {
       return res.status(400).json({ message: 'Missing required parameter: school_id' });
     }
 
-    const filter = { school_id };
+    const baseFilter = [{ school_id }];
 
     if (student_id) {
-      filter.student_id = student_id;
+      baseFilter.push({ student_id });
     }
 
     if (name) {
       const nameRegex = new RegExp(name.replace(/\s+/g, '.*'), 'i');
 
-      // Add full name matching logic
-      filter.$or = [
-        { $expr: { $regexMatch: { input: { $concat: ['$first_name', ' ', '$last_name'] }, regex: nameRegex } } },
-        { $expr: { $regexMatch: { input: { $concat: ['$last_name', ' ', '$first_name'] }, regex: nameRegex } } }
-      ];
+      baseFilter.push({
+        $or: [
+          {
+            $expr: {
+              $regexMatch: {
+                input: { $concat: ['$first_name', ' ', '$last_name'] },
+                regex: nameRegex,
+              },
+            },
+          },
+          {
+            $expr: {
+              $regexMatch: {
+                input: { $concat: ['$last_name', ' ', '$first_name'] },
+                regex: nameRegex,
+              },
+            },
+          },
+        ],
+      });
     }
 
-    const students = await Student.find(filter);
+    const students = await Student.find({ $and: baseFilter });
 
     if (!students.length) {
       return res.status(404).json({ message: 'No matching students found in this school.' });
@@ -172,6 +186,7 @@ const searchStudent = async (req, res) => {
     res.status(500).json({ message: 'Error searching students.' });
   }
 };
+
 
 
 // Delete multiple student records by IDs
