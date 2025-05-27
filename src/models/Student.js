@@ -132,6 +132,11 @@ const studentSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  
+  registered:{
+    type:Boolean,
+    default: false,
+  },
 }, { timestamps: true });
 
 // Auto-generate name

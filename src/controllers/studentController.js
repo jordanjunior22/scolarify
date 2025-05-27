@@ -47,6 +47,13 @@ const createStudent = async (req, res) => {
     });
 
     if (existingStudent) {
+      // Stop registration if student is already registered
+      if (existingStudent.registered) {
+        return res.status(409).json({
+          message: 'Student is already registered and cannot be registered again.',
+        });
+      }
+
       // Only update allowed fields
       const updatableFields = ['school_id', 'address', 'class', 'phone_number', 'email'];
 
@@ -75,6 +82,7 @@ const createStudent = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
+
 
 
 
