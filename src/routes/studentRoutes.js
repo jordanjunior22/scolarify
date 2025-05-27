@@ -1,7 +1,9 @@
 const express = require('express');
+const multer = require('multer')
+const upload = multer({ dest: "uploads/" });
+
 const studentController = require('../controllers/studentController'); // Updated controller import
 const { authenticate, authorize, checkSubscription } = require('../middleware/middleware');
-
 
 const router = express.Router();
 // router.get('/test', studentController.testStudentResponse); // Updated route to match student
@@ -26,6 +28,6 @@ router.delete('/delete-student/:id', authenticate, authorize(['admin', 'super'])
 
 //DELETE multiple students
 router.delete('/delete-students', authenticate, authorize(['admin', 'super']), studentController.deleteMultipleStudents);
-router.post('/import-csv-students/:schoolId', authenticate,authorize(['admin', 'super']),studentController.importStudentsFromCSV);
+router.post('/import-csv-students/:schoolId',upload.single("file"), authenticate,authorize(['admin', 'super']),studentController.importStudentsFromCSV);
 
 module.exports = router;
