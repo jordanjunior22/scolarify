@@ -137,6 +137,10 @@ const studentSchema = new mongoose.Schema({
     type:Boolean,
     default: false,
   },
+  avatar:{
+    type: String,
+    
+  },
 }, { timestamps: true });
 
 // Auto-generate name
