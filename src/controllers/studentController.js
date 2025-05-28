@@ -67,6 +67,7 @@ const createStudent = async (req, res) => {
       await existingStudent.save();
 
       return res.status(200).json({
+        ok: true,
         message: 'Student already existed. Fields updated.',
         student: existingStudent,
       });
@@ -87,6 +88,7 @@ const createStudent = async (req, res) => {
     await newStudent.save();
 
     return res.status(201).json({
+      ok: true,
       message: 'Student created successfully.',
       student: newStudent,
     });
