@@ -36,12 +36,10 @@ const createStudent = async (req, res) => {
   try {
     const { first_name, last_name, date_of_birth, school_id } = req.body;
 
-    // Validate required fields (optional but good practice)
     if (!first_name || !last_name || !date_of_birth || !school_id) {
       return res.status(400).json({ message: 'Missing required student fields.' });
     }
 
-    // Find existing student
     const existingStudent = await Student.findOne({
       first_name: new RegExp(`^${first_name}$`, 'i'),
       last_name: new RegExp(`^${last_name}$`, 'i'),
@@ -50,31 +48,19 @@ const createStudent = async (req, res) => {
     });
 
     if (existingStudent) {
-      // Stop registration if student is already registered
-      if (existingStudent.registered) {
-        return res.status(409).json({
-          message: 'Student is already registered and cannot be registered again.',
-        });
-      }
-
-      // Only update allowed fields
-      const updatableFields = ['school_id', 'address', 'class', 'phone_number', 'email'];
-
-      updatableFields.forEach(field => {
-        if (req.body[field] !== undefined) {
-          existingStudent[field] = req.body[field];
-        }
+      // Dynamically update all fields passed in req.body
+      Object.keys(req.body).forEach(key => {
+        existingStudent[key] = req.body[key];
       });
 
       await existingStudent.save();
 
       return res.status(200).json({
-        message: 'Student already existed. Allowed fields updated.',
+        message: 'Student already existed. Fields updated.',
         student: existingStudent,
       });
     }
 
-    // Create new student
     const studentId = await ensureUniqueId(Student, 'student_id', 'STD');
     const newStudent = new Student({ student_id: studentId, ...req.body });
     await newStudent.save();
