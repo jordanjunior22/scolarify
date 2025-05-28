@@ -11,6 +11,7 @@ const studentSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: [],
     },
   ],
 
@@ -22,76 +23,86 @@ const studentSchema = new mongoose.Schema({
   class_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",
+    default: null,
   },
-  class_level: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "ClassLevel", 
+  class_level: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ClassLevel",
+    default: null,
   },
+
   first_name: { type: String, required: true },
   last_name: { type: String, required: true },
-  middle_name: { type: String },
-  name: { type: String },
-  gender: { type: String, enum: ["Male", "Female", "Other"] },
-  nationality: { type: String },
-  place_of_birth: { type: String },
-  address: { type: String },
-  phone: { type: String },
-  date_of_birth: { type: Date },
+  middle_name: { type: String, default: "" },
+  name: { type: String, default: "" },
+  gender: { type: String, enum: ["Male", "Female", "Other"], default: "Other" },
+  nationality: { type: String, default: "" },
+  place_of_birth: { type: String, default: "" },
+  address: { type: String, default: "" },
+  phone: { type: String, default: "" },
+  date_of_birth: { type: Date, default: null },
 
-  guardian_name: { type: String },
-  guardian_phone: { type: String },
-  guardian_email: { type: String },
-  guardian_address: { type: String },
+  guardian_name: { type: String, default: "" },
+  guardian_phone: { type: String, default: "" },
+  guardian_email: { type: String, default: "" },
+  guardian_address: { type: String, default: "" },
   guardian_relationship: {
     type: String,
     enum: [
       "Mother", "Father", "Brother", "Sister", "Aunty", "Uncle",
       "Grand Mother", "Grand Father", "Other",
     ],
+    default: "Other",
   },
-  guardian_occupation: { type: String },
+  guardian_occupation: { type: String, default: "" },
 
-  emergency_contact_name: { type: String },
-  emergency_contact_phone: { type: String },
+  emergency_contact_name: { type: String, default: "" },
+  emergency_contact_phone: { type: String, default: "" },
   emergency_contact_relationship: {
     type: String,
     enum: [
       "Mother", "Father", "Brother", "Sister", "Aunty", "Uncle",
       "Grand Mother", "Grand Father", "Other",
     ],
+    default: "Other",
   },
 
-  previous_school: { type: String },
+  previous_school: { type: String, default: "" },
   transcript_reportcard: { type: Boolean, default: false },
 
-  health_condition: { type: String },
-  doctors_name: { type: String },
-  doctors_phone: { type: String },
+  health_condition: { type: String, default: "" },
+  doctors_name: { type: String, default: "" },
+  doctors_phone: { type: String, default: "" },
 
   selectedFees: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Fee",
+      default: [],
     },
   ],
   selectedResources: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "SchoolResource",
+      default: [],
     },
   ],
   paymentMode: {
     type: String,
-    enum: ["full", "installment"],
-    default: "full",
+    enum: ["full", "installment", null],
+    default: null,
   },
+
   installments: {
     type: Number,
-    default: 1,
+    default: null,
   },
+
   installmentDates: [
     {
       type: String,
+      default: [],
     },
   ],
   applyScholarship: {
@@ -115,12 +126,13 @@ const studentSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Subject",
+      default: [],
     },
   ],
 
   enrollement_date: {
     type: Date,
-    default: Date.now,
+    default: null,
   },
   status: {
     type: String,
@@ -132,36 +144,34 @@ const studentSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  
-  registered:{
-    type:Boolean,
+
+  registered: {
+    type: Boolean,
     default: false,
   },
-  avatar:{
+
+  avatar: {
     type: String,
-    
+    default: "",
   },
 }, { timestamps: true });
 
-// Auto-generate name
+// Auto-generate name and calculate fees
 studentSchema.pre("save", async function (next) {
   this.name = `${this.first_name} ${this.last_name}`;
 
   try {
-    // Populate fees and resources
     const Fee = mongoose.model("Fee");
     const Resource = mongoose.model("SchoolResource");
 
     const fees = await Fee.find({ _id: { $in: this.selectedFees } });
     const resources = await Resource.find({ _id: { $in: this.selectedResources } });
 
-    // Sum amounts
     const feeTotal = fees.reduce((sum, fee) => sum + (fee.amount || 0), 0);
     const resourceTotal = resources.reduce((sum, res) => sum + (res.amount || 0), 0);
 
     let total = feeTotal + resourceTotal;
 
-    // Apply scholarshipPercentage if applicable
     if (this.applyScholarship && this.scholarshipPercentage > 0) {
       const discount = (this.scholarshipPercentage / 100) * total;
       total -= discount;
