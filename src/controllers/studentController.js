@@ -34,12 +34,19 @@ const getStudentsBySchoolId = async (req, res) => {
 // // Create a new student record
 const createStudent = async (req, res) => {
   try {
-    const { first_name, last_name, date_of_birth, school_id } = req.body;
+    const {
+      first_name,
+      last_name,
+      date_of_birth,
+      school_id,
+      ...restOfBody
+    } = req.body;
 
     if (!first_name || !last_name || !date_of_birth || !school_id) {
       return res.status(400).json({ message: 'Missing required student fields.' });
     }
 
+    // Try to find an existing student
     const existingStudent = await Student.findOne({
       first_name: new RegExp(`^${first_name}$`, 'i'),
       last_name: new RegExp(`^${last_name}$`, 'i'),
@@ -48,9 +55,13 @@ const createStudent = async (req, res) => {
     });
 
     if (existingStudent) {
-      // Dynamically update all fields passed in req.body
-      Object.keys(req.body).forEach(key => {
-        existingStudent[key] = req.body[key];
+      // Update existing student fields
+      const updatableFields = Object.keys(req.body);
+
+      updatableFields.forEach(field => {
+        if (req.body[field] !== undefined) {
+          existingStudent[field] = req.body[field];
+        }
       });
 
       await existingStudent.save();
@@ -61,14 +72,28 @@ const createStudent = async (req, res) => {
       });
     }
 
-    const studentId = await ensureUniqueId(Student, 'student_id', 'STD');
-    const newStudent = new Student({ student_id: studentId, ...req.body });
+    // Create new student
+    const student_id = await ensureUniqueId(Student, 'student_id', 'STD');
+
+    const newStudent = new Student({
+      student_id,
+      first_name,
+      last_name,
+      date_of_birth: new Date(date_of_birth),
+      school_id,
+      ...restOfBody,
+    });
+
     await newStudent.save();
 
-    res.status(201).json(newStudent);
+    return res.status(201).json({
+      message: 'Student created successfully.',
+      student: newStudent,
+    });
+
   } catch (err) {
     console.error('Error creating/updating student:', err);
-    res.status(400).json({ message: err.message });
+    return res.status(500).json({ message: 'Server error while creating student.', error: err.message });
   }
 };
 
